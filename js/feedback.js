@@ -1,6 +1,7 @@
 // ========== 全局变量 ==========
 let currentMessageId = null;
 let selectedFiles = { image: null, video: null };
+let postFiles = { image: null, video: null };  // 发帖文件
 let currentUser = { name: '', email: '' };
 
 // ========== 用户信息管理 ==========
@@ -20,79 +21,133 @@ function getUserInitial() {
     return currentUser.name ? currentUser.name.charAt(0).toUpperCase() : '用';
 }
 
-// ========== 模态框处理 ==========
-const modal = document.getElementById('feedbackModal');
-const postBtn = document.getElementById('postBtn');
-const closeBtn = document.getElementById('closeBtn');
+// ========== 发帖相关函数 ==========
+function insertPostImage() {
+    document.getElementById('postImageInput').click();
+}
 
-postBtn.addEventListener('click', function() {
-    modal.classList.add('show');
+function insertPostVideo() {
+    document.getElementById('postVideoInput').click();
+}
+
+function insertPostEmoji() {
+    alert('表情功能开发中...');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('postImageInput').addEventListener('change', function(e) {
+        if (e.target.files[0]) {
+            postFiles.image = e.target.files[0];
+            showPostMediaPreview();
+        }
+    });
+
+    document.getElementById('postVideoInput').addEventListener('change', function(e) {
+        if (e.target.files[0]) {
+            postFiles.video = e.target.files[0];
+            showPostMediaPreview();
+        }
+    });
 });
 
-closeBtn.addEventListener('click', function() {
-    modal.classList.remove('show');
-});
-
-modal.addEventListener('click', function(e) {
-    if (e.target === modal) {
-        modal.classList.remove('show');
+function showPostMediaPreview() {
+    const preview = document.getElementById('postMediaPreview');
+    preview.innerHTML = '';
+    
+    if (postFiles.image) {
+        const url = URL.createObjectURL(postFiles.image);
+        preview.innerHTML += `
+            <div class="media-item">
+                <img src="${url}" alt="预览">
+                <button class="media-remove" onclick="removePostImage()">×</button>
+            </div>
+        `;
     }
-});
+    
+    if (postFiles.video) {
+        const url = URL.createObjectURL(postFiles.video);
+        preview.innerHTML += `
+            <div class="media-item">
+                <video style="max-width: 150px; max-height: 150px;"><source src="${url}"></video>
+                <button class="media-remove" onclick="removePostVideo()">×</button>
+            </div>
+        `;
+    }
+}
 
-// ========== 主表单处理 ==========
-document.getElementById('image').addEventListener('change', function(e) {
-    const fileName = e.target.files[0]?.name || '';
-    document.getElementById('imageName').textContent = fileName ? `已选择: ${fileName}` : '';
-});
+function removePostImage() {
+    postFiles.image = null;
+    document.getElementById('postImageInput').value = '';
+    showPostMediaPreview();
+}
 
-document.getElementById('video').addEventListener('change', function(e) {
-    const fileName = e.target.files[0]?.name || '';
-    document.getElementById('videoName').textContent = fileName ? `已选择: ${fileName}` : '';
-});
+function removePostVideo() {
+    postFiles.video = null;
+    document.getElementById('postVideoInput').value = '';
+    showPostMediaPreview();
+}
 
-document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+function clearPostForm() {
+    document.getElementById('postContent').value = '';
+    postFiles = { image: null, video: null };
+    document.getElementById('postImageInput').value = '';
+    document.getElementById('postVideoInput').value = '';
+    document.getElementById('postMediaPreview').innerHTML = '';
+}
 
-    const formData = new FormData(this);
-    const submitBtn = this.querySelector('.submit-btn');
-    const alertDiv = document.getElementById('alert');
-
+async function submitPost() {
+    const content = document.getElementById('postContent').value.trim();
+    
+    if (!content) {
+        alert('请输入留言内容');
+        return;
+    }
+    
+    if (!currentUser.name || !currentUser.email) {
+        alert('请先设置用户信息');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('name', currentUser.name);
+    formData.append('email', currentUser.email);
+    formData.append('content', content);
+    
+    if (postFiles.image) {
+        formData.append('image', postFiles.image);
+    }
+    
+    if (postFiles.video) {
+        formData.append('video', postFiles.video);
+    }
+    
+    const submitBtn = document.getElementById('postSubmitBtn');
     submitBtn.disabled = true;
-    submitBtn.textContent = '提交中...';
-
+    submitBtn.textContent = '发帖中...';
+    
     try {
         const response = await fetch('/api/messages', {
             method: 'POST',
             body: formData
         });
-
+        
         const data = await response.json();
-
+        
         if (response.ok) {
-            alertDiv.className = 'alert success';
-            alertDiv.textContent = data.message || '留言已提交，感谢您的反馈！';
-            this.reset();
-            document.getElementById('imageName').textContent = '';
-            document.getElementById('videoName').textContent = '';
-            
-            setTimeout(() => {
-                modal.classList.remove('show');
-                alertDiv.className = 'alert';
-                loadMessages();
-            }, 2000);
+            clearPostForm();
+            loadMessages();
         } else {
-            alertDiv.className = 'alert error';
-            alertDiv.textContent = data.error || '提交失败，请重试';
+            alert(data.error || '发帖失败');
         }
     } catch (error) {
-        alertDiv.className = 'alert error';
-        alertDiv.textContent = '网络错误，请检查连接后重试';
+        alert('网络错误，请重试');
         console.error('Error:', error);
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = '提交留言';
+        submitBtn.textContent = '发帖';
     }
-});
+}
+
 
 // 加载并显示所有留言
 async function loadMessages() {
@@ -429,20 +484,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // 加载用户信息
     loadUserInfo();
     
-    // 处理主表单中的文件选择
-    document.getElementById('image').addEventListener('change', function(e) {
-        const fileName = e.target.files[0]?.name || '';
-        document.getElementById('imageName').textContent = fileName ? `已选择: ${fileName}` : '';
-    });
-
-    document.getElementById('video').addEventListener('change', function(e) {
-        const fileName = e.target.files[0]?.name || '';
-        document.getElementById('videoName').textContent = fileName ? `已选择: ${fileName}` : '';
-    });
+    // 更新发帖框的用户信息
+    updatePostUserInfo();
     
     // 加载留言
     loadMessages();
 });
+
+function updatePostUserInfo() {
+    const userInfoHtml = currentUser.name 
+        ? `你好，<strong>${escapeHtml(currentUser.name)}</strong> | <a onclick="editPostUserInfo()">修改</a>`
+        : `<a onclick="editPostUserInfo()">点击设置用户信息</a>`;
+    document.getElementById('postUserInfoSection').innerHTML = userInfoHtml;
+    document.getElementById('postUserAvatar').textContent = getUserInitial();
+}
+
+function editPostUserInfo() {
+    const name = prompt('请输入你的名字:', currentUser.name || '');
+    if (name === null) return;
+    
+    const email = prompt('请输入你的邮箱:', currentUser.email || '');
+    if (email === null) return;
+    
+    if (name.trim() && email.trim()) {
+        saveUserInfo(name.trim(), email.trim());
+        updatePostUserInfo();
+    }
+}
 
 // 每30秒刷新一次留言
 setInterval(loadMessages, 30000);
