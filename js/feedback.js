@@ -1,22 +1,38 @@
-// 全局变量
+// ========== 全局变量 ==========
 let currentMessageId = null;
+let selectedFiles = { image: null, video: null };
+let currentUser = { name: '', email: '' };
 
-// 获取模态框元素
+// ========== 用户信息管理 ==========
+function loadUserInfo() {
+    const saved = localStorage.getItem('userInfo');
+    if (saved) {
+        currentUser = JSON.parse(saved);
+    }
+}
+
+function saveUserInfo(name, email) {
+    currentUser = { name, email };
+    localStorage.setItem('userInfo', JSON.stringify(currentUser));
+}
+
+function getUserInitial() {
+    return currentUser.name ? currentUser.name.charAt(0).toUpperCase() : '用';
+}
+
+// ========== 模态框处理 ==========
 const modal = document.getElementById('feedbackModal');
 const postBtn = document.getElementById('postBtn');
 const closeBtn = document.getElementById('closeBtn');
 
-// 打开模态框
 postBtn.addEventListener('click', function() {
     modal.classList.add('show');
 });
 
-// 关闭模态框
 closeBtn.addEventListener('click', function() {
     modal.classList.remove('show');
 });
 
-// 点击模态框外部关闭
 modal.addEventListener('click', function(e) {
     if (e.target === modal) {
         modal.classList.remove('show');

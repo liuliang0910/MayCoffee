@@ -517,6 +517,179 @@
             padding: 30px 20px;
             font-size: 15px;
         }
+
+        /* 简化的评论框样式 */
+        .comment-box {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .comment-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #8B6F47;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .comment-input-area {
+            flex: 1;
+        }
+
+        .comment-input-area textarea {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            box-sizing: border-box;
+        }
+
+        .comment-input-area textarea:focus {
+            outline: none;
+            border-color: #8B6F47;
+            box-shadow: 0 0 5px rgba(139, 111, 71, 0.3);
+        }
+
+        .comment-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .toolbar-btn:hover {
+            background-color: #f5f5f5;
+            border-color: #8B6F47;
+            color: #8B6F47;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .comment-submit-btn {
+            background-color: #8B6F47;
+            color: white;
+            padding: 8px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .comment-submit-btn:hover {
+            background-color: #6b5535;
+        }
+
+        .comment-submit-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .comment-cancel-btn {
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 8px 24px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .comment-cancel-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .media-preview {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .media-item {
+            position: relative;
+            display: inline-block;
+        }
+
+        .media-item img,
+        .media-item video {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .media-remove {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .user-info-section {
+            background-color: #fafafa;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .user-info-section a {
+            color: #8B6F47;
+            cursor: pointer;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -664,6 +837,34 @@
             <button class="back-btn" onclick="backToList()">← 返回列表</button>
             <div class="detail-container">
                 <div id="messageDetail"></div>
+                
+                <!-- 简化的评论框 -->
+                <div class="replies-detail-section">
+                    <h3>💬 回复</h3>
+                    <div class="user-info-section" id="userInfoSection"></div>
+                    <div class="comment-box">
+                        <div class="comment-input-wrapper">
+                            <div class="comment-avatar" id="userAvatar">用</div>
+                            <div class="comment-input-area">
+                                <textarea id="quickReplyContent" placeholder="写下你的想法..."></textarea>
+                            </div>
+                        </div>
+                        <div class="comment-toolbar">
+                            <button class="toolbar-btn" onclick="insertImage()" title="插入图片">📷 图片</button>
+                            <button class="toolbar-btn" onclick="insertVideo()" title="插入视频">🎥 视频</button>
+                            <button class="toolbar-btn" onclick="insertEmoji()" title="插入表情">😊 表情</button>
+                        </div>
+                        <div class="media-preview" id="mediaPreview"></div>
+                        <div class="comment-actions">
+                            <button class="comment-cancel-btn" onclick="clearReplyForm()">取消</button>
+                            <button class="comment-submit-btn" id="quickSubmitBtn" onclick="submitQuickReply()">发送</button>
+                        </div>
+                    </div>
+                    <input type="file" id="quickImageInput" accept="image/*" style="display: none;">
+                    <input type="file" id="quickVideoInput" accept="video/*" style="display: none;">
+                </div>
+                
+                <!-- 回复列表 -->
                 <div id="repliesSection"></div>
             </div>
         </div>
