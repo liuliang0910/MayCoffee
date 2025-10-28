@@ -712,116 +712,31 @@
     </header>
 
     <main class="feedback-container">
-        <!-- 顶部发帖按钮 -->
-        <div class="feedback-header">
-            <button class="post-btn" id="postBtn">✍️ 发帖</button>
-        </div>
-
-        <!-- 模态框 -->
-        <div id="feedbackModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>留下您的建议</h2>
-                    <button class="close-btn" id="closeBtn">&times;</button>
+        <!-- 简化的发帖框 -->
+        <div style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
+            <div class="user-info-section" id="postUserInfoSection"></div>
+            <div class="comment-box">
+                <div class="comment-input-wrapper">
+                    <div class="comment-avatar" id="postUserAvatar">用</div>
+                    <div class="comment-input-area">
+                        <textarea id="postContent" placeholder="分享你的想法..."></textarea>
+                    </div>
                 </div>
-
-                <div id="alert" class="alert"></div>
-
-                <form id="feedbackForm">
-                    <div class="form-group">
-                        <label for="name">您的名字 *</label>
-                        <input type="text" id="name" name="name" required placeholder="请输入您的名字">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">邮箱 *</label>
-                        <input type="email" id="email" name="email" required placeholder="请输入您的邮箱">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="content">留言内容 *</label>
-                        <textarea id="content" name="content" required placeholder="请输入您的建议或想法..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="image">上传图片 (可选)</label>
-                        <div class="file-input-wrapper">
-                            <input type="file" id="image" name="image" accept="image/*">
-                            <label for="image" class="file-input-label">
-                                📷 点击选择图片或拖拽上传
-                            </label>
-                            <div class="file-name" id="imageName"></div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="video">上传视频 (可选)</label>
-                        <div class="file-input-wrapper">
-                            <input type="file" id="video" name="video" accept="video/*">
-                            <label for="video" class="file-input-label">
-                                🎥 点击选择视频或拖拽上传
-                            </label>
-                            <div class="file-name" id="videoName"></div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="submit-btn">提交留言</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- 回复模态框 -->
-        <div id="replyModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>回复留言</h2>
-                    <button class="close-btn" onclick="closeReplyModal()">&times;</button>
+                <div class="comment-toolbar">
+                    <button class="toolbar-btn" onclick="insertPostImage()" title="插入图片">📷 图片</button>
+                    <button class="toolbar-btn" onclick="insertPostVideo()" title="插入视频">🎥 视频</button>
+                    <button class="toolbar-btn" onclick="insertPostEmoji()" title="插入表情">😊 表情</button>
                 </div>
-
-                <form id="replyForm">
-                    <input type="hidden" id="replyMessageId" name="message_id">
-                    
-                    <div class="form-group">
-                        <label for="replyName">您的名字 *</label>
-                        <input type="text" id="replyName" name="name" required placeholder="请输入您的名字">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="replyEmail">邮箱 *</label>
-                        <input type="email" id="replyEmail" name="email" required placeholder="请输入您的邮箱">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="replyContent">回复内容 *</label>
-                        <textarea id="replyContent" name="content" required placeholder="请输入您的回复..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="replyImage">上传图片 (可选)</label>
-                        <div class="file-input-wrapper">
-                            <input type="file" id="replyImage" name="image" accept="image/*">
-                            <label for="replyImage" class="file-input-label">
-                                📷 点击选择图片或拖拽上传
-                            </label>
-                            <div class="file-name" id="replyImageName"></div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="replyVideo">上传视频 (可选)</label>
-                        <div class="file-input-wrapper">
-                            <input type="file" id="replyVideo" name="video" accept="video/*">
-                            <label for="replyVideo" class="file-input-label">
-                                🎥 点击选择视频或拖拽上传
-                            </label>
-                            <div class="file-name" id="replyVideoName"></div>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="submit-btn">发布回复</button>
-                </form>
+                <div class="media-preview" id="postMediaPreview"></div>
+                <div class="comment-actions">
+                    <button class="comment-cancel-btn" onclick="clearPostForm()">取消</button>
+                    <button class="comment-submit-btn" id="postSubmitBtn" onclick="submitPost()">发帖</button>
+                </div>
             </div>
+            <input type="file" id="postImageInput" accept="image/*" style="display: none;">
+            <input type="file" id="postVideoInput" accept="video/*" style="display: none;">
         </div>
+
 
         <!-- 显示所有留言 -->
         <div id="listPageContainer" class="feedback-section">
