@@ -41,7 +41,7 @@ class Reply(db.Model):
             'image_path': self.image_path,
             'video_path': self.video_path,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            'children': [child.to_dict() for child in self.children]
+            'children': [child.to_dict() for child in (self.children or [])]
         }
 
 # 定义留言模型
