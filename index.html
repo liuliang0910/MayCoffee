@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五月咖啡 - MayCoffee</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <img src="images/1_主logo/五月咖啡 主LOGO 透明背景.svg" alt="五月咖啡 MayCoffee Logo">
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="menu.html">产品菜单</a></li>
+                    <li><a href="about.html">关于我们</a></li>
+                    <li><a href="contact.html">联系我们</a></li>
+                    <li><a href="feedback.html">客户留言</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>不止是一杯咖啡</h1>
+            <p>在五月，遇见生活的美好</p>
+        </div>
+    </section>
+
+    <main class="container">
+        <h2>欢迎来到五月咖啡</h2>
+        <p>在这里，我们为您精心准备了每一杯咖啡，希望能为您带来片刻的宁静与惬意。</p>
+
+        <!-- 客户留言区 -->
+        <section class="messages-section">
+            <h2>💬 客户留言</h2>
+            
+            <!-- 统计信息 -->
+            <div class="messages-stats">
+                <span>总留言数：<strong id="totalCount">0</strong></span>
+                <span>搜索结果：<strong id="resultCount">0</strong></span>
+            </div>
+            
+            <!-- 搜索框 -->
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索留言内容、客户名字..." class="search-input">
+                <select id="sortSelect" class="sort-select">
+                    <option value="newest">最新优先</option>
+                    <option value="oldest">最旧优先</option>
+                </select>
+                <button id="searchBtn" class="search-btn">🔍 搜索</button>
+                <button id="clearBtn" class="clear-btn">清空</button>
+            </div>
+
+            <!-- 留言列表 -->
+            <div id="messagesContainer" class="messages-list">
+                <div class="loading">
+                    <p>加载中...</p>
+                </div>
+            </div>
+            
+            <!-- 分页控件 -->
+            <div id="paginationContainer" class="pagination-container"></div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2025 五月咖啡 MayCoffee. 版权所有.</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/index-messages.js"></script>
+</body>
+</html>
