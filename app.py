@@ -21,23 +21,27 @@ db = SQLAlchemy(app)
 class Reply(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     message_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('reply.id'), nullable=True)  # 用于嵌套回复
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
     image_path = db.Column(db.String(255))
     video_path = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.now)
+    children = db.relationship('Reply', remote_side=[id], backref='parent')
 
     def to_dict(self):
         return {
             'id': self.id,
             'message_id': self.message_id,
+            'parent_id': self.parent_id,
             'name': self.name,
             'email': self.email,
             'content': self.content,
             'image_path': self.image_path,
             'video_path': self.video_path,
-            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'children': [child.to_dict() for child in self.children]
         }
 
 # 定义留言模型
@@ -209,11 +213,18 @@ def submit_reply(msg_id):
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip()
         content = request.form.get('content', '').strip()
+        parent_id = request.form.get('parent_id', None)
         
         if not name or not email or not content:
             return jsonify({'error': '请填写所有必填项'}), 400
         
-        reply = Reply(message_id=msg_id, name=name, email=email, content=content)
+        # 如果有 parent_id，验证它是否存在
+        if parent_id:
+            parent_reply = Reply.query.get(parent_id)
+            if not parent_reply or parent_reply.message_id != msg_id:
+                return jsonify({'error': '父回复不存在'}), 404
+        
+        reply = Reply(message_id=msg_id, parent_id=parent_id if parent_id else None, name=name, email=email, content=content)
         
         # 处理图片上传
         if 'image' in request.files:
@@ -238,7 +249,7 @@ def submit_reply(msg_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# 获取留言的所有回复
+# 获取留言的所有回复（树形结构）
 @app.route('/api/messages/<int:msg_id>/replies', methods=['GET'])
 def get_replies(msg_id):
     try:
@@ -246,8 +257,9 @@ def get_replies(msg_id):
         if not message:
             return jsonify({'error': '留言不存在'}), 404
         
-        replies = Reply.query.filter_by(message_id=msg_id).order_by(Reply.created_at.asc()).all()
-        return jsonify([reply.to_dict() for reply in replies])
+        # 获取所有顶级回复（parent_id 为 None）
+        top_replies = Reply.query.filter_by(message_id=msg_id, parent_id=None).order_by(Reply.created_at.asc()).all()
+        return jsonify([reply.to_dict() for reply in top_replies])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

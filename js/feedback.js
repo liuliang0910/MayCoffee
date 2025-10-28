@@ -168,6 +168,9 @@ async function viewMessageDetail(messageId) {
     }
 }
 
+// ========== 嵌套回复相关变量 ==========
+let replyingToId = null;  // 当前正在回复的回复 ID
+
 // ========== 简化评论框相关函数 ==========
 function insertImage() {
     document.getElementById('quickImageInput').click();
@@ -240,6 +243,7 @@ function clearReplyForm() {
     document.getElementById('quickImageInput').value = '';
     document.getElementById('quickVideoInput').value = '';
     document.getElementById('mediaPreview').innerHTML = '';
+    replyingToId = null;
 }
 
 async function submitQuickReply() {
@@ -259,6 +263,11 @@ async function submitQuickReply() {
     formData.append('name', currentUser.name);
     formData.append('email', currentUser.email);
     formData.append('content', content);
+    
+    // 如果是回复某个回复，添加 parent_id
+    if (replyingToId) {
+        formData.append('parent_id', replyingToId);
+    }
     
     if (selectedFiles.image) {
         formData.append('image', selectedFiles.image);
@@ -293,6 +302,13 @@ async function submitQuickReply() {
         submitBtn.disabled = false;
         submitBtn.textContent = '发送';
     }
+}
+
+// 回复某个回复
+function replyToReply(replyId, replyName) {
+    replyingToId = replyId;
+    document.getElementById('quickReplyContent').focus();
+    document.getElementById('quickReplyContent').placeholder = `回复 @${replyName}`;
 }
 
 // ========== 详情页面加载回复 ==========
