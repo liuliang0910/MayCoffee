@@ -271,16 +271,19 @@ sudo journalctl -u maycoffee -f
 sudo systemctl status nginx
 ```
 
-## 域名配置（可选）
+## 域名配置
 
-如果你有自己的域名，可以在 Nginx 配置中修改：
+你的域名已配置为：`www.maycoffee.com.cn` 和 `maycoffee.com.cn`
 
+Nginx 配置中已设置：
 ```nginx
-server_name yourdomain.com www.yourdomain.com;
+server_name www.maycoffee.com.cn maycoffee.com.cn;
 ```
 
-然后在域名提供商的 DNS 设置中，将 A 记录指向 `47.107.42.77`。
+**确保在阿里云 DNS 设置中，将 A 记录指向 `47.107.42.77`**
 
 ---
 
-**部署完成后，你的网站就可以通过 http://47.107.42.77 访问了！**
+**部署完成后，你的网站就可以通过以下地址访问：**
+- 🌐 **网站**: https://www.maycoffee.com.cn
+- 🔐 **管理后台**: https://www.maycoffee.com.cn/admin

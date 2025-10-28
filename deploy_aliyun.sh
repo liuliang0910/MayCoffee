@@ -102,7 +102,7 @@ ssh ${SERVER_USER}@${SERVER_IP} << 'EOF'
     cat > /etc/nginx/sites-available/maycoffee << 'NGINX_CONFIG'
 server {
     listen 80;
-    server_name _;
+    server_name www.maycoffee.com.cn maycoffee.com.cn;
     client_max_body_size 100M;
 
     location / {
