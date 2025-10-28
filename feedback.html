@@ -360,6 +360,163 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* 详情页面样式 */
+        .back-btn {
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 10px 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #e0e0e0;
+            border-color: #8B6F47;
+        }
+
+        .detail-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .message-detail-card {
+            background-color: #f9f9f9;
+            border-left: 4px solid #8B6F47;
+            padding: 30px;
+            margin-bottom: 40px;
+            border-radius: 4px;
+        }
+
+        .message-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .message-detail-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .message-detail-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .message-detail-content {
+            color: #555;
+            line-height: 1.8;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .message-detail-media {
+            margin-top: 20px;
+        }
+
+        .message-detail-media img,
+        .message-detail-media video {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        /* 回复区域 */
+        .replies-detail-section {
+            margin-top: 40px;
+        }
+
+        .replies-detail-section h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #8B6F47;
+            padding-bottom: 10px;
+        }
+
+        .reply-form-section {
+            background-color: #fafafa;
+            padding: 25px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .reply-form-section h4 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .replies-list-detail {
+            margin-top: 20px;
+        }
+
+        .reply-item-detail {
+            background-color: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border-left: 3px solid #ddd;
+        }
+
+        .reply-item-detail:hover {
+            border-left-color: #8B6F47;
+        }
+
+        .reply-header-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .reply-name-detail {
+            font-weight: bold;
+            color: #666;
+            font-size: 15px;
+        }
+
+        .reply-time-detail {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .reply-content-detail {
+            color: #555;
+            line-height: 1.6;
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+
+        .reply-media-detail {
+            margin-top: 15px;
+        }
+
+        .reply-media-detail img,
+        .reply-media-detail video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .no-replies {
+            text-align: center;
+            color: #999;
+            padding: 30px 20px;
+            font-size: 15px;
+        }
     </style>
 </head>
 <body>
@@ -494,11 +651,20 @@
         </div>
 
         <!-- 显示所有留言 -->
-        <div class="feedback-section">
+        <div id="listPageContainer" class="feedback-section">
             <h2>💬 客户留言</h2>
             <div id="messagesContainer" class="loading">
                 <div class="spinner"></div>
                 <p>加载中...</p>
+            </div>
+        </div>
+
+        <!-- 隐藏的详情页面容器 -->
+        <div id="detailPageContainer" style="display: none;">
+            <button class="back-btn" onclick="backToList()">← 返回列表</button>
+            <div class="detail-container">
+                <div id="messageDetail"></div>
+                <div id="repliesSection"></div>
             </div>
         </div>
     </main>
