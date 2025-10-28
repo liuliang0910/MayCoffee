@@ -241,6 +241,65 @@
             margin-bottom: 15px;
         }
 
+        .reply-btn {
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .reply-btn:hover {
+            background-color: #e0e0e0;
+            border-color: #8B6F47;
+        }
+
+        .replies-container {
+            margin-top: 15px;
+            padding-left: 20px;
+            border-left: 2px solid #e0e0e0;
+        }
+
+        .replies-list {
+            margin-top: 10px;
+        }
+
+        .reply-item {
+            background-color: #fafafa;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .reply-name {
+            font-weight: bold;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .reply-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .reply-content {
+            color: #555;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
         .message-media {
             margin-top: 15px;
         }
@@ -377,6 +436,59 @@
                     </div>
 
                     <button type="submit" class="submit-btn">提交留言</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 回复模态框 -->
+        <div id="replyModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>回复留言</h2>
+                    <button class="close-btn" onclick="closeReplyModal()">&times;</button>
+                </div>
+
+                <form id="replyForm">
+                    <input type="hidden" id="replyMessageId" name="message_id">
+                    
+                    <div class="form-group">
+                        <label for="replyName">您的名字 *</label>
+                        <input type="text" id="replyName" name="name" required placeholder="请输入您的名字">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="replyEmail">邮箱 *</label>
+                        <input type="email" id="replyEmail" name="email" required placeholder="请输入您的邮箱">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="replyContent">回复内容 *</label>
+                        <textarea id="replyContent" name="content" required placeholder="请输入您的回复..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="replyImage">上传图片 (可选)</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="replyImage" name="image" accept="image/*">
+                            <label for="replyImage" class="file-input-label">
+                                📷 点击选择图片或拖拽上传
+                            </label>
+                            <div class="file-name" id="replyImageName"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="replyVideo">上传视频 (可选)</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="replyVideo" name="video" accept="video/*">
+                            <label for="replyVideo" class="file-input-label">
+                                🎥 点击选择视频或拖拽上传
+                            </label>
+                            <div class="file-name" id="replyVideoName"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">发布回复</button>
                 </form>
             </div>
         </div>

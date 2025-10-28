@@ -17,6 +17,29 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
 
+# 定义回复模型
+class Reply(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    image_path = db.Column(db.String(255))
+    video_path = db.Column(db.String(255))
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'message_id': self.message_id,
+            'name': self.name,
+            'email': self.email,
+            'content': self.content,
+            'image_path': self.image_path,
+            'video_path': self.video_path,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
 # 定义留言模型
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,6 +50,7 @@ class Message(db.Model):
     video_path = db.Column(db.String(255))
     approved = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
+    replies = db.relationship('Reply', backref='message', lazy=True, cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -37,7 +61,8 @@ class Message(db.Model):
             'image_path': self.image_path,
             'video_path': self.video_path,
             'approved': self.approved,
-            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'replies': [reply.to_dict() for reply in self.replies]
         }
 
 # 创建数据库表
@@ -172,6 +197,59 @@ def delete_message(msg_id):
 def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect(url_for('admin_login'))
+
+# 提交回复
+@app.route('/api/messages/<int:msg_id>/replies', methods=['POST'])
+def submit_reply(msg_id):
+    try:
+        message = Message.query.get(msg_id)
+        if not message:
+            return jsonify({'error': '留言不存在'}), 404
+        
+        name = request.form.get('name', '').strip()
+        email = request.form.get('email', '').strip()
+        content = request.form.get('content', '').strip()
+        
+        if not name or not email or not content:
+            return jsonify({'error': '请填写所有必填项'}), 400
+        
+        reply = Reply(message_id=msg_id, name=name, email=email, content=content)
+        
+        # 处理图片上传
+        if 'image' in request.files:
+            file = request.files['image']
+            if file and file.filename and allowed_file(file.filename):
+                filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                reply.image_path = f"uploads/{filename}"
+        
+        # 处理视频上传
+        if 'video' in request.files:
+            file = request.files['video']
+            if file and file.filename and allowed_file(file.filename):
+                filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                reply.video_path = f"uploads/{filename}"
+        
+        db.session.add(reply)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': '回复已发布', 'reply': reply.to_dict()}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# 获取留言的所有回复
+@app.route('/api/messages/<int:msg_id>/replies', methods=['GET'])
+def get_replies(msg_id):
+    try:
+        message = Message.query.get(msg_id)
+        if not message:
+            return jsonify({'error': '留言不存在'}), 404
+        
+        replies = Reply.query.filter_by(message_id=msg_id).order_by(Reply.created_at.asc()).all()
+        return jsonify([reply.to_dict() for reply in replies])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)
