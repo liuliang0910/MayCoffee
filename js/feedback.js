@@ -39,7 +39,7 @@ modal.addEventListener('click', function(e) {
     }
 });
 
-// 处理文件选择
+// ========== 主表单处理 ==========
 document.getElementById('image').addEventListener('change', function(e) {
     const fileName = e.target.files[0]?.name || '';
     document.getElementById('imageName').textContent = fileName ? `已选择: ${fileName}` : '';
@@ -50,7 +50,6 @@ document.getElementById('video').addEventListener('change', function(e) {
     document.getElementById('videoName').textContent = fileName ? `已选择: ${fileName}` : '';
 });
 
-// 处理表单提交
 document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -76,7 +75,6 @@ document.getElementById('feedbackForm').addEventListener('submit', async functio
             document.getElementById('imageName').textContent = '';
             document.getElementById('videoName').textContent = '';
             
-            // 2秒后关闭模态框并刷新留言列表
             setTimeout(() => {
                 modal.classList.remove('show');
                 alertDiv.className = 'alert';
@@ -170,66 +168,157 @@ async function viewMessageDetail(messageId) {
     }
 }
 
-// 详情页面加载回复
+// ========== 简化评论框相关函数 ==========
+function insertImage() {
+    document.getElementById('quickImageInput').click();
+}
+
+function insertVideo() {
+    document.getElementById('quickVideoInput').click();
+}
+
+function insertEmoji() {
+    alert('表情功能开发中...');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('quickImageInput').addEventListener('change', function(e) {
+        if (e.target.files[0]) {
+            selectedFiles.image = e.target.files[0];
+            showMediaPreview();
+        }
+    });
+
+    document.getElementById('quickVideoInput').addEventListener('change', function(e) {
+        if (e.target.files[0]) {
+            selectedFiles.video = e.target.files[0];
+            showMediaPreview();
+        }
+    });
+});
+
+function showMediaPreview() {
+    const preview = document.getElementById('mediaPreview');
+    preview.innerHTML = '';
+    
+    if (selectedFiles.image) {
+        const url = URL.createObjectURL(selectedFiles.image);
+        preview.innerHTML += `
+            <div class="media-item">
+                <img src="${url}" alt="预览">
+                <button class="media-remove" onclick="removeImage()">×</button>
+            </div>
+        `;
+    }
+    
+    if (selectedFiles.video) {
+        const url = URL.createObjectURL(selectedFiles.video);
+        preview.innerHTML += `
+            <div class="media-item">
+                <video style="max-width: 150px; max-height: 150px;"><source src="${url}"></video>
+                <button class="media-remove" onclick="removeVideo()">×</button>
+            </div>
+        `;
+    }
+}
+
+function removeImage() {
+    selectedFiles.image = null;
+    document.getElementById('quickImageInput').value = '';
+    showMediaPreview();
+}
+
+function removeVideo() {
+    selectedFiles.video = null;
+    document.getElementById('quickVideoInput').value = '';
+    showMediaPreview();
+}
+
+function clearReplyForm() {
+    document.getElementById('quickReplyContent').value = '';
+    selectedFiles = { image: null, video: null };
+    document.getElementById('quickImageInput').value = '';
+    document.getElementById('quickVideoInput').value = '';
+    document.getElementById('mediaPreview').innerHTML = '';
+}
+
+async function submitQuickReply() {
+    const content = document.getElementById('quickReplyContent').value.trim();
+    
+    if (!content) {
+        alert('请输入回复内容');
+        return;
+    }
+    
+    if (!currentUser.name || !currentUser.email) {
+        alert('请先设置用户信息');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('name', currentUser.name);
+    formData.append('email', currentUser.email);
+    formData.append('content', content);
+    
+    if (selectedFiles.image) {
+        formData.append('image', selectedFiles.image);
+    }
+    
+    if (selectedFiles.video) {
+        formData.append('video', selectedFiles.video);
+    }
+    
+    const submitBtn = document.getElementById('quickSubmitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '发送中...';
+    
+    try {
+        const response = await fetch(`/api/messages/${currentMessageId}/replies`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            clearReplyForm();
+            await loadDetailReplies(currentMessageId);
+        } else {
+            alert(data.error || '回复失败');
+        }
+    } catch (error) {
+        alert('网络错误，请重试');
+        console.error('Error:', error);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '发送';
+    }
+}
+
+// ========== 详情页面加载回复 ==========
 async function loadDetailReplies(messageId) {
     try {
         const response = await fetch(`/api/messages/${messageId}/replies`);
         const replies = await response.json();
         
-        let repliesHtml = `
-            <div class="replies-detail-section">
-                <h3>💬 回复 (${replies.length})</h3>
-                
-                <div class="reply-form-section">
-                    <h4>写下你的回复</h4>
-                    <form id="detailReplyForm">
-                        <div class="form-group">
-                            <label for="detailReplyName">您的名字 *</label>
-                            <input type="text" id="detailReplyName" name="name" required placeholder="请输入您的名字">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="detailReplyEmail">邮箱 *</label>
-                            <input type="email" id="detailReplyEmail" name="email" required placeholder="请输入您的邮箱">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="detailReplyContent">回复内容 *</label>
-                            <textarea id="detailReplyContent" name="content" required placeholder="请输入您的回复..."></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="detailReplyImage">上传图片 (可选)</label>
-                            <div class="file-input-wrapper">
-                                <input type="file" id="detailReplyImage" name="image" accept="image/*">
-                                <label for="detailReplyImage" class="file-input-label">
-                                    📷 点击选择图片或拖拽上传
-                                </label>
-                                <div class="file-name" id="detailReplyImageName"></div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="detailReplyVideo">上传视频 (可选)</label>
-                            <div class="file-input-wrapper">
-                                <input type="file" id="detailReplyVideo" name="video" accept="video/*">
-                                <label for="detailReplyVideo" class="file-input-label">
-                                    🎥 点击选择视频或拖拽上传
-                                </label>
-                                <div class="file-name" id="detailReplyVideoName"></div>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="submit-btn">发布回复</button>
-                    </form>
-                </div>
-        `;
+        // 更新用户信息显示
+        const userInfoHtml = currentUser.name 
+            ? `你好，<strong>${escapeHtml(currentUser.name)}</strong> | <a onclick="editUserInfo()">修改</a>`
+            : `<a onclick="editUserInfo()">点击设置用户信息</a>`;
+        document.getElementById('userInfoSection').innerHTML = userInfoHtml;
+        document.getElementById('userAvatar').textContent = getUserInitial();
+        
+        // 清空表单
+        clearReplyForm();
+        
+        // 渲染回复列表
+        let repliesHtml = '';
         
         if (replies.length === 0) {
-            repliesHtml += '<div class="no-replies">暂无回复，成为第一个回复的人吧！</div>';
+            repliesHtml = '<div class="no-replies">暂无回复，成为第一个回复的人吧！</div>';
         } else {
-            repliesHtml += `
-                <div class="replies-list-detail">
+            repliesHtml = `
+                <div style="margin-top: 30px;">
                     ${replies.map(reply => `
                         <div class="reply-item-detail">
                             <div class="reply-header-detail">
@@ -245,85 +334,22 @@ async function loadDetailReplies(messageId) {
             `;
         }
         
-        repliesHtml += '</div>';
         document.getElementById('repliesSection').innerHTML = repliesHtml;
-        
-        // 绑定详情页面回复表单提交事件
-        const detailReplyForm = document.getElementById('detailReplyForm');
-        if (detailReplyForm) {
-            detailReplyForm.addEventListener('submit', submitDetailReply);
-        }
-        
-        // 绑定文件选择事件
-        document.getElementById('detailReplyImage').addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name || '';
-            document.getElementById('detailReplyImageName').textContent = fileName ? `已选择: ${fileName}` : '';
-        });
-
-        document.getElementById('detailReplyVideo').addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name || '';
-            document.getElementById('detailReplyVideoName').textContent = fileName ? `已选择: ${fileName}` : '';
-        });
     } catch (error) {
         console.error('Error loading replies:', error);
     }
 }
 
-// 提交详情页面的回复
-async function submitDetailReply(e) {
-    e.preventDefault();
+function editUserInfo() {
+    const name = prompt('请输入你的名字:', currentUser.name || '');
+    if (name === null) return;
     
-    const messageId = currentMessageId;
-    const name = document.getElementById('detailReplyName').value.trim();
-    const email = document.getElementById('detailReplyEmail').value.trim();
-    const content = document.getElementById('detailReplyContent').value.trim();
+    const email = prompt('请输入你的邮箱:', currentUser.email || '');
+    if (email === null) return;
     
-    if (!name || !email || !content) {
-        alert('请填写所有必填项');
-        return;
-    }
-    
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('email', email);
-    formData.append('content', content);
-    
-    // 添加图片和视频文件
-    const imageFile = document.getElementById('detailReplyImage').files[0];
-    if (imageFile) {
-        formData.append('image', imageFile);
-    }
-    
-    const videoFile = document.getElementById('detailReplyVideo').files[0];
-    if (videoFile) {
-        formData.append('video', videoFile);
-    }
-    
-    const submitBtn = this.querySelector('.submit-btn');
-    submitBtn.disabled = true;
-    submitBtn.textContent = '发布中...';
-    
-    try {
-        const response = await fetch(`/api/messages/${messageId}/replies`, {
-            method: 'POST',
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            alert('回复已发布');
-            // 重新加载回复列表
-            await loadDetailReplies(messageId);
-        } else {
-            alert(data.error || '回复失败');
-        }
-    } catch (error) {
-        alert('网络错误，请重试');
-        console.error('Error:', error);
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '发布回复';
+    if (name.trim() && email.trim()) {
+        saveUserInfo(name.trim(), email.trim());
+        loadDetailReplies(currentMessageId);
     }
 }
 
@@ -362,8 +388,11 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
-// 页面加载时初始化
+// ========== 页面初始化 ==========
 document.addEventListener('DOMContentLoaded', function() {
+    // 加载用户信息
+    loadUserInfo();
+    
     // 处理主表单中的文件选择
     document.getElementById('image').addEventListener('change', function(e) {
         const fileName = e.target.files[0]?.name || '';
@@ -374,10 +403,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const fileName = e.target.files[0]?.name || '';
         document.getElementById('videoName').textContent = fileName ? `已选择: ${fileName}` : '';
     });
+    
+    // 加载留言
+    loadMessages();
 });
-
-// 页面加载时获取留言
-loadMessages();
 
 // 每30秒刷新一次留言
 setInterval(loadMessages, 30000);
