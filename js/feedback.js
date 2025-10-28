@@ -311,6 +311,36 @@ function replyToReply(replyId, replyName) {
     document.getElementById('quickReplyContent').placeholder = `回复 @${replyName}`;
 }
 
+// ========== 递归渲染嵌套回复 ==========
+function renderReplyTree(reply, depth = 0) {
+    const marginLeft = depth * 30;  // 每层缩进 30px
+    let html = `
+        <div class="reply-item-detail" style="margin-left: ${marginLeft}px; margin-top: 15px;">
+            <div class="reply-header-detail">
+                <span class="reply-name-detail">${escapeHtml(reply.name)}</span>
+                <span class="reply-time-detail">${reply.created_at}</span>
+            </div>
+            <div class="reply-content-detail">${escapeHtml(reply.content).replace(/\n/g, '<br>')}</div>
+            ${reply.image_path ? `<div class="reply-media-detail"><img src="${reply.image_path}" alt="回复图片"></div>` : ''}
+            ${reply.video_path ? `<div class="reply-media-detail"><video controls><source src="${reply.video_path}" type="video/mp4"></video></div>` : ''}
+            <div style="margin-top: 10px;">
+                <button class="toolbar-btn" onclick="replyToReply(${reply.id}, '${escapeHtml(reply.name)}')">💬 回复</button>
+            </div>
+    `;
+    
+    // 递归渲染子回复
+    if (reply.children && reply.children.length > 0) {
+        html += '<div style="margin-top: 10px;">';
+        reply.children.forEach(child => {
+            html += renderReplyTree(child, depth + 1);
+        });
+        html += '</div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
 // ========== 详情页面加载回复 ==========
 async function loadDetailReplies(messageId) {
     try {
@@ -333,21 +363,11 @@ async function loadDetailReplies(messageId) {
         if (replies.length === 0) {
             repliesHtml = '<div class="no-replies">暂无回复，成为第一个回复的人吧！</div>';
         } else {
-            repliesHtml = `
-                <div style="margin-top: 30px;">
-                    ${replies.map(reply => `
-                        <div class="reply-item-detail">
-                            <div class="reply-header-detail">
-                                <span class="reply-name-detail">${escapeHtml(reply.name)}</span>
-                                <span class="reply-time-detail">${reply.created_at}</span>
-                            </div>
-                            <div class="reply-content-detail">${escapeHtml(reply.content).replace(/\n/g, '<br>')}</div>
-                            ${reply.image_path ? `<div class="reply-media-detail"><img src="${reply.image_path}" alt="回复图片"></div>` : ''}
-                            ${reply.video_path ? `<div class="reply-media-detail"><video controls><source src="${reply.video_path}" type="video/mp4"></video></div>` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+            repliesHtml = '<div style="margin-top: 30px;">';
+            replies.forEach(reply => {
+                repliesHtml += renderReplyTree(reply);
+            });
+            repliesHtml += '</div>';
         }
         
         document.getElementById('repliesSection').innerHTML = repliesHtml;
