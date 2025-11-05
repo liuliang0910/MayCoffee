@@ -287,10 +287,18 @@ async function viewMessageDetail(messageId) {
         const detailHtml = `
             <div class="message-detail-card">
                 <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #8B6F47;">
-                    <h3 style="margin: 0 0 10px 0; color: #333; font-size: 22px;">${escapeHtml(message.title)}</h3>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: #666; font-size: 14px;">👤 ${escapeHtml(message.name)}</span>
-                        <span style="color: #999; font-size: 12px;">${message.created_at}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <h3 style="margin: 0 0 10px 0; color: #333; font-size: 22px;">${escapeHtml(message.title)}</h3>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #666; font-size: 14px;">👤 ${escapeHtml(message.name)}</span>
+                                <span style="color: #999; font-size: 12px; margin-left: 20px;">${message.created_at}</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="editMessage(${message.id})" style="padding: 8px 15px; background: #8B6F47; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">✏️ 编辑</button>
+                            <button onclick="deleteMessage(${message.id})" style="padding: 8px 15px; background: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">🗑️ 删除</button>
+                        </div>
                     </div>
                 </div>
                 <div class="message-detail-content">${escapeHtml(message.content).replace(/\n/g, '<br>')}</div>
@@ -609,6 +617,82 @@ function editPostUserInfo() {
     if (name.trim() && email.trim()) {
         saveUserInfo(name.trim(), email.trim());
         updatePostUserInfo();
+    }
+}
+
+// 编辑留言
+async function editMessage(messageId) {
+    const response = await fetch('/api/messages');
+    const messages = await response.json();
+    const message = messages.find(m => m.id === messageId);
+    
+    if (!message) {
+        alert('留言不存在');
+        return;
+    }
+    
+    // 弹出编辑对话框
+    const newTitle = prompt('请输入新的主题标题:', message.title);
+    if (newTitle === null) return;
+    
+    const newContent = prompt('请输入新的留言内容:', message.content);
+    if (newContent === null) return;
+    
+    if (!newTitle.trim() || !newContent.trim()) {
+        alert('主题和内容不能为空');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/messages/${messageId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: newTitle.trim(),
+                content: newContent.trim()
+            })
+        });
+        
+        if (response.ok) {
+            alert('✅ 留言已更新');
+            // 刷新留言详情
+            viewMessageDetail(messageId);
+            // 刷新留言列表
+            loadMessages();
+        } else {
+            alert('❌ 更新失败');
+        }
+    } catch (error) {
+        console.error('Error updating message:', error);
+        alert('❌ 更新失败');
+    }
+}
+
+// 删除留言
+async function deleteMessage(messageId) {
+    if (!confirm('确定要删除这条留言吗？此操作不可撤销。')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/messages/${messageId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('✅ 留言已删除');
+            // 返回列表
+            backToList();
+            // 刷新留言列表
+            loadMessages();
+        } else {
+            alert('❌ 删除失败');
+        }
+    } catch (error) {
+        console.error('Error deleting message:', error);
+        alert('❌ 删除失败');
     }
 }
 
