@@ -226,12 +226,8 @@ def admin_login():
             return redirect(url_for('admin'))
         else:
             # 返回登录页面并显示错误信息
-            with open('templates/admin_login.html', 'r', encoding='utf-8') as f:
-                html = f.read()
-            html = html.replace('{% if error %}', '<!-- error shown -->')
-            html = html.replace('{{ error }}', '密码错误')
-            return html
-    return app.send_static_file('templates/admin_login.html')
+            return render_template('admin_login.html', error='密码错误')
+    return render_template('admin_login.html')
 
 # 管理后台 - 获取所有留言
 @app.route('/api/admin/messages', methods=['GET'])
