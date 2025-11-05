@@ -74,19 +74,39 @@ function renderMessages() {
         
         const videoHtml = msg.video_path ? `<div class="message-media"><video controls style="max-width: 100%; max-height: 400px;"><source src="${msg.video_path}" type="video/mp4"></video></div>` : '';
         
+        // 获取内容预览（前100个字符）
+        const contentPreview = msg.content.length > 100 ? msg.content.substring(0, 100) + '...' : msg.content;
+        
+        // 获取用户名首字母作为头像
+        const userInitial = msg.name ? msg.name.charAt(0).toUpperCase() : '用';
+        
         return `
-            <div class="message-item" onclick="openMessageDetail(${msg.id})" style="cursor: pointer;">
-                <div style="margin-bottom: 10px;">
-                    <h4 style="margin: 0 0 8px 0; color: #333; font-size: 16px; font-weight: bold;">${escapeHtml(msg.title || msg.name)}</h4>
-                    <div class="message-header">
-                        <span class="message-name">${escapeHtml(msg.name)}</span>
-                        <span class="message-time">${msg.created_at}</span>
+            <div class="message-item" onclick="openMessageDetail(${msg.id})" style="cursor: pointer; display: flex; gap: 15px; padding: 15px; border: 1px solid #eee; border-radius: 8px; background: #fff; transition: all 0.3s ease; margin-bottom: 15px;">
+                <!-- 用户头像 -->
+                <div style="flex-shrink: 0;">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #8B6F47 0%, #A0826D 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">${userInitial}</div>
+                </div>
+                
+                <!-- 内容区域 -->
+                <div style="flex: 1; min-width: 0;">
+                    <!-- 头部：用户名和时间 -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="color: #333; font-weight: bold; font-size: 14px;">${escapeHtml(msg.name)}</span>
+                        <span style="color: #999; font-size: 12px;">${msg.created_at}</span>
+                    </div>
+                    
+                    <!-- 标题 -->
+                    <h4 style="margin: 0 0 10px 0; color: #0066cc; font-size: 16px; font-weight: bold; word-break: break-word;">${escapeHtml(msg.title || msg.name)}</h4>
+                    
+                    <!-- 内容预览 -->
+                    <div style="color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 10px; word-break: break-word;">${escapeHtml(contentPreview).replace(/\n/g, ' ')}</div>
+                    
+                    <!-- 媒体预览 -->
+                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                        ${imagesHtml ? `<div style="max-width: 100px; max-height: 100px; border-radius: 4px; overflow: hidden;">${imagesHtml}</div>` : ''}
+                        ${videoHtml ? `<div style="max-width: 100px; max-height: 100px; border-radius: 4px; overflow: hidden;">${videoHtml}</div>` : ''}
                     </div>
                 </div>
-                <div class="message-content">${escapeHtml(msg.content).replace(/\n/g, '<br>')}</div>
-                ${imagesHtml}
-                ${videoHtml}
-                <div style="margin-top: 10px; color: #8B6F47; font-size: 14px;">点击查看详情和回复 →</div>
             </div>
         `;
     }).join('');
