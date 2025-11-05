@@ -190,7 +190,7 @@ def submit_message():
         if 'images' in request.files:
             files = request.files.getlist('images')
             for file in files:
-                if file and file.filename and allowed_file(file.filename):
+                if file and file.filename and allowed_upload_file(file.filename):
                     filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                     image_paths.append(f"uploads/{filename}")
@@ -198,7 +198,7 @@ def submit_message():
         # 兼容旧的单图片上传方式
         if 'image' in request.files and not image_paths:
             file = request.files['image']
-            if file and file.filename and allowed_file(file.filename):
+            if file and file.filename and allowed_upload_file(file.filename):
                 filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 image_paths.append(f"uploads/{filename}")
@@ -209,10 +209,23 @@ def submit_message():
         # 处理视频上传
         if 'video' in request.files:
             file = request.files['video']
-            if file and file.filename and allowed_file(file.filename):
+            if file and file.filename and allowed_upload_file(file.filename):
                 filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 message.video_path = f"uploads/{filename}"
+        
+        # 处理多个文件上传
+        file_paths = []
+        if 'files' in request.files:
+            files = request.files.getlist('files')
+            for file in files:
+                if file and file.filename and allowed_file(file.filename):
+                    filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    file_paths.append(f"uploads/{filename}")
+        
+        if file_paths:
+            message.file_paths = ','.join(file_paths)
         
         # 直接批准留言，无需审核
         message.approved = True
@@ -293,6 +306,13 @@ def delete_message(msg_id):
     
     if message.video_path and os.path.exists(message.video_path):
         os.remove(message.video_path)
+    
+    # 删除上传的文件
+    if message.file_paths:
+        file_list = [f.strip() for f in message.file_paths.split(',') if f.strip()]
+        for file_path in file_list:
+            if os.path.exists(file_path):
+                os.remove(file_path)
     
     # 删除所有回复及其文件
     for reply in message.replies:

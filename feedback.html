@@ -725,6 +725,7 @@
                 <div class="comment-toolbar">
                     <button class="toolbar-btn" onclick="insertPostImage()" title="插入图片">📷 图片</button>
                     <button class="toolbar-btn" onclick="insertPostVideo()" title="插入视频">🎥 视频</button>
+                    <button class="toolbar-btn" onclick="insertPostFile()" title="上传文件">📎 文件</button>
                     <button class="toolbar-btn" onclick="insertPostEmoji()" title="插入表情">😊 表情</button>
                 </div>
                 <div class="media-preview" id="postMediaPreview"></div>
@@ -735,6 +736,7 @@
             </div>
             <input type="file" id="postImageInput" accept="image/*" multiple style="display: none;">
             <input type="file" id="postVideoInput" accept="video/*" style="display: none;">
+            <input type="file" id="postFileInput" multiple style="display: none;">
         </div>
 
 
@@ -767,6 +769,7 @@
                         <div class="comment-toolbar">
                             <button class="toolbar-btn" onclick="insertImage()" title="插入图片">📷 图片</button>
                             <button class="toolbar-btn" onclick="insertVideo()" title="插入视频">🎥 视频</button>
+                            <button class="toolbar-btn" onclick="insertFile()" title="上传文件">📎 文件</button>
                             <button class="toolbar-btn" onclick="insertEmoji()" title="插入表情">😊 表情</button>
                         </div>
                         <div class="media-preview" id="mediaPreview"></div>
@@ -777,6 +780,7 @@
                     </div>
                     <input type="file" id="quickImageInput" accept="image/*" style="display: none;">
                     <input type="file" id="quickVideoInput" accept="video/*" style="display: none;">
+                    <input type="file" id="quickFileInput" multiple style="display: none;">
                 </div>
                 
                 <!-- 回复列表 -->
