@@ -1,7 +1,7 @@
 // ========== 全局变量 ==========
 let currentMessageId = null;
-let selectedFiles = { image: null, video: null };
-let postFiles = { images: [], video: null };  // 发帖文件，支持多张图片
+let selectedFiles = { image: null, video: null, files: [] };
+let postFiles = { images: [], video: null, files: [] };  // 发帖文件，支持多张图片和多个文件
 let currentUser = { name: '', email: '' };
 
 // ========== 用户信息管理 ==========
@@ -30,6 +30,10 @@ function insertPostVideo() {
     document.getElementById('postVideoInput').click();
 }
 
+function insertPostFile() {
+    document.getElementById('postFileInput').click();
+}
+
 function insertPostEmoji() {
     alert('表情功能开发中...');
 }
@@ -46,6 +50,13 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('postVideoInput').addEventListener('change', function(e) {
         if (e.target.files[0]) {
             postFiles.video = e.target.files[0];
+            showPostMediaPreview();
+        }
+    });
+
+    document.getElementById('postFileInput').addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+            postFiles.files = Array.from(e.target.files);
             showPostMediaPreview();
         }
     });
@@ -77,6 +88,20 @@ function showPostMediaPreview() {
             </div>
         `;
     }
+    
+    // 显示所有文件
+    if (postFiles.files && postFiles.files.length > 0) {
+        postFiles.files.forEach((file, index) => {
+            preview.innerHTML += `
+                <div class="media-item" style="background: #f0f0f0; padding: 8px; border-radius: 4px;">
+                    <div style="font-size: 12px; color: #666; word-break: break-all;">
+                        📄 ${file.name}
+                    </div>
+                    <button class="media-remove" onclick="removePostFile(${index})">×</button>
+                </div>
+            `;
+        });
+    }
 }
 
 function removePostImage(index) {
@@ -95,11 +120,20 @@ function removePostVideo() {
     showPostMediaPreview();
 }
 
+function removePostFile(index) {
+    postFiles.files.splice(index, 1);
+    if (postFiles.files.length === 0) {
+        document.getElementById('postFileInput').value = '';
+    }
+    showPostMediaPreview();
+}
+
 function clearPostForm() {
     document.getElementById('postContent').value = '';
-    postFiles = { images: [], video: null };
+    postFiles = { images: [], video: null, files: [] };
     document.getElementById('postImageInput').value = '';
     document.getElementById('postVideoInput').value = '';
+    document.getElementById('postFileInput').value = '';
     document.getElementById('postMediaPreview').innerHTML = '';
 }
 
@@ -130,6 +164,13 @@ async function submitPost() {
     
     if (postFiles.video) {
         formData.append('video', postFiles.video);
+    }
+    
+    // 添加多个文件
+    if (postFiles.files && postFiles.files.length > 0) {
+        postFiles.files.forEach((file) => {
+            formData.append('files', file);
+        });
     }
     
     const submitBtn = document.getElementById('postSubmitBtn');
@@ -220,6 +261,18 @@ async function viewMessageDetail(messageId) {
             imagesHtml = `<div class="message-detail-media"><img src="${message.image_path}" alt="留言图片"></div>`;
         }
         
+        // 处理文件列表
+        let filesHtml = '';
+        if (message.file_paths && message.file_paths.length > 0) {
+            filesHtml = '<div style="margin-top: 15px; padding: 12px; background: #f9f9f9; border-radius: 4px;">' +
+                '<div style="font-weight: bold; margin-bottom: 8px; color: #333;">📎 附件：</div>' +
+                message.file_paths.map(file => {
+                    const filename = file.split('/').pop();
+                    return `<div style="margin-bottom: 6px;"><a href="${file}" download style="color: #8B6F47; text-decoration: none; word-break: break-all;">📥 ${filename}</a></div>`;
+                }).join('') +
+                '</div>';
+        }
+        
         const detailHtml = `
             <div class="message-detail-card">
                 <div class="message-detail-header">
@@ -229,6 +282,7 @@ async function viewMessageDetail(messageId) {
                 <div class="message-detail-content">${escapeHtml(message.content).replace(/\n/g, '<br>')}</div>
                 ${imagesHtml}
                 ${message.video_path ? `<div class="message-detail-media"><video controls><source src="${message.video_path}" type="video/mp4"></video></div>` : ''}
+                ${filesHtml}
             </div>
         `;
         
