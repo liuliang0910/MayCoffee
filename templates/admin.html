@@ -422,7 +422,7 @@
                         📧 ${escapeHtml(msg.email)} | 📅 ${msg.created_at}
                     </div>
                     <div class="message-content">${escapeHtml(msg.content).replace(/\n/g, '<br>')}</div>
-                    ${msg.image_path ? `<div class="message-media"><img src="${msg.image_path}" alt="用户上传的图片"></div>` : ''}
+                    ${msg.image_paths && msg.image_paths.length > 0 ? `<div class="message-media">${msg.image_paths.map(img => `<img src="${img}" alt="用户上传的图片">`).join('')}</div>` : (msg.image_path ? `<div class="message-media"><img src="${msg.image_path}" alt="用户上传的图片"></div>` : '')}
                     ${msg.video_path ? `<div class="message-media"><video controls><source src="${msg.video_path}" type="video/mp4"></video></div>` : ''}
                     <div class="message-actions">
                         ${!msg.approved ? `<button class="btn btn-approve" onclick="approveMessage(${msg.id})">批准</button>` : ''}

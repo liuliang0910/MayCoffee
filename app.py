@@ -209,11 +209,25 @@ def delete_message(msg_id):
     if not message:
         return jsonify({'error': '留言不存在'}), 404
     
-    # 删除上传的文件
-    if message.image_path and os.path.exists(message.image_path):
+    # 删除上传的文件 - 支持多张图片
+    if message.image_paths:
+        image_list = [img.strip() for img in message.image_paths.split(',') if img.strip()]
+        for img_path in image_list:
+            if os.path.exists(img_path):
+                os.remove(img_path)
+    elif message.image_path and os.path.exists(message.image_path):
+        # 兼容旧数据
         os.remove(message.image_path)
+    
     if message.video_path and os.path.exists(message.video_path):
         os.remove(message.video_path)
+    
+    # 删除所有回复及其文件
+    for reply in message.replies:
+        if reply.image_path and os.path.exists(reply.image_path):
+            os.remove(reply.image_path)
+        if reply.video_path and os.path.exists(reply.video_path):
+            os.remove(reply.video_path)
     
     db.session.delete(message)
     db.session.commit()
