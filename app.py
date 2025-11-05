@@ -50,21 +50,28 @@ class Message(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    image_paths = db.Column(db.Text)  # 改为存储多张图片，用逗号分隔
+    image_path = db.Column(db.String(255))  # 保留旧字段用于兼容
+    image_paths = db.Column(db.Text)  # 新字段：存储多张图片，用逗号分隔
     video_path = db.Column(db.String(255))
     approved = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     replies = db.relationship('Reply', backref='message', lazy=True, cascade='all, delete-orphan')
 
     def to_dict(self):
-        # 将逗号分隔的图片路径转换为列表
-        image_list = [img.strip() for img in self.image_paths.split(',') if img.strip()] if self.image_paths else []
+        # 优先使用 image_paths，如果没有则使用旧的 image_path
+        image_list = []
+        if self.image_paths:
+            image_list = [img.strip() for img in self.image_paths.split(',') if img.strip()]
+        elif self.image_path:
+            # 兼容旧数据
+            image_list = [self.image_path]
+        
         return {
             'id': self.id,
             'name': self.name,
             'email': self.email,
             'content': self.content,
-            'image_paths': image_list,  # 返回列表而不是字符串
+            'image_paths': image_list,  # 返回列表
             'image_path': image_list[0] if image_list else None,  # 兼容旧代码
             'video_path': self.video_path,
             'approved': self.approved,
