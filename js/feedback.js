@@ -522,8 +522,13 @@ async function loadDetailReplies(messageId) {
         
         // 更新用户信息显示
         const userInfoHtml = currentUser.name 
-            ? `你好，<strong>${escapeHtml(currentUser.name)}</strong> | <a onclick="editUserInfo()">修改</a>`
-            : `<a onclick="editUserInfo()">点击设置用户信息</a>`;
+            ? `<div style="padding: 10px; background: #f5f5f5; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                <span>👤 你好，<strong>${escapeHtml(currentUser.name)}</strong></span>
+                <button onclick="editUserInfo()" style="padding: 6px 12px; background: #8B6F47; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">修改信息</button>
+               </div>`
+            : `<div style="padding: 10px; background: #fff3cd; border-radius: 4px; text-align: center;">
+                <button onclick="editUserInfo()" style="padding: 8px 20px; background: #8B6F47; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">⚙️ 设置用户信息</button>
+               </div>`;
         document.getElementById('userInfoSection').innerHTML = userInfoHtml;
         document.getElementById('userAvatar').textContent = getUserInitial();
         
