@@ -57,13 +57,20 @@ def send_wechat_notification(message_type, customer_name, content_preview):
         }
         
         response = requests.post(url, data=data, timeout=10)
-        result = response.json()
+        print(f"📤 Server酱响应状态码: {response.status_code}")
+        print(f"📤 Server酱响应内容: {response.text}")
         
-        if result.get('errno') == 0:
-            print(f"✅ 微信通知已发送: {title}")
-            return True
-        else:
-            print(f"❌ 微信通知发送失败: {result.get('errmsg', '未知错误')}")
+        try:
+            result = response.json()
+            if result.get('errno') == 0:
+                print(f"✅ 微信通知已发送: {title}")
+                return True
+            else:
+                print(f"❌ 微信通知发送失败: {result.get('errmsg', '未知错误')}")
+                return False
+        except Exception as json_error:
+            print(f"❌ 解析 Server酱 响应失败: {str(json_error)}")
+            print(f"❌ 原始响应: {response.text}")
             return False
         
     except Exception as e:
