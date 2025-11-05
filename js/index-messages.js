@@ -61,17 +61,31 @@ function renderMessages() {
         return;
     }
 
-    container.innerHTML = messages.map(msg => `
-        <div class="message-item">
-            <div class="message-header">
-                <span class="message-name">${escapeHtml(msg.name)}</span>
-                <span class="message-time">${msg.created_at}</span>
+    container.innerHTML = messages.map(msg => {
+        // 处理多张图片（新格式）或单张图片（旧格式）
+        let imagesHtml = '';
+        if (msg.image_paths && msg.image_paths.length > 0) {
+            imagesHtml = msg.image_paths.map(imgPath => 
+                `<div class="message-media"><img src="${imgPath}" alt="用户上传的图片"></div>`
+            ).join('');
+        } else if (msg.image_path) {
+            imagesHtml = `<div class="message-media"><img src="${msg.image_path}" alt="用户上传的图片"></div>`;
+        }
+        
+        const videoHtml = msg.video_path ? `<div class="message-media"><video controls style="max-width: 100%; max-height: 400px;"><source src="${msg.video_path}" type="video/mp4"></video></div>` : '';
+        
+        return `
+            <div class="message-item">
+                <div class="message-header">
+                    <span class="message-name">${escapeHtml(msg.name)}</span>
+                    <span class="message-time">${msg.created_at}</span>
+                </div>
+                <div class="message-content">${escapeHtml(msg.content).replace(/\n/g, '<br>')}</div>
+                ${imagesHtml}
+                ${videoHtml}
             </div>
-            <div class="message-content">${escapeHtml(msg.content).replace(/\n/g, '<br>')}</div>
-            ${msg.image_path ? `<div class="message-media"><img src="${msg.image_path}" alt="用户上传的图片"></div>` : ''}
-            ${msg.video_path ? `<div class="message-media"><video controls style="max-width: 100%; max-height: 400px;"><source src="${msg.video_path}" type="video/mp4"></video></div>` : ''}
-        </div>
-    `).join('');
+        `;
+    }).join('');
     
     renderPagination();
 }
