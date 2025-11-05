@@ -286,25 +286,45 @@ async function viewMessageDetail(messageId) {
         
         const detailHtml = `
             <div class="message-detail-card">
-                <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #8B6F47;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div>
-                            <h3 style="margin: 0 0 10px 0; color: #333; font-size: 22px;">${escapeHtml(message.title)}</h3>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="color: #666; font-size: 14px;">👤 ${escapeHtml(message.name)}</span>
-                                <span style="color: #999; font-size: 12px; margin-left: 20px;">${message.created_at}</span>
+                <div id="messageViewMode">
+                    <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #8B6F47;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <h3 style="margin: 0 0 10px 0; color: #333; font-size: 22px;">${escapeHtml(message.title)}</h3>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: #666; font-size: 14px;">👤 ${escapeHtml(message.name)}</span>
+                                    <span style="color: #999; font-size: 12px; margin-left: 20px;">${message.created_at}</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="startEditMessage(${message.id})" style="padding: 8px 15px; background: #8B6F47; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">✏️ 编辑</button>
+                                <button onclick="deleteMessage(${message.id})" style="padding: 8px 15px; background: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">🗑️ 删除</button>
                             </div>
                         </div>
+                    </div>
+                    <div class="message-detail-content">${escapeHtml(message.content).replace(/\n/g, '<br>')}</div>
+                    ${imagesHtml}
+                    ${message.video_path ? `<div class="message-detail-media"><video controls><source src="${message.video_path}" type="video/mp4"></video></div>` : ''}
+                    ${filesHtml}
+                </div>
+                
+                <div id="messageEditMode" style="display: none;">
+                    <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #8B6F47;">
+                        <h3 style="margin: 0 0 15px 0; color: #333; font-size: 20px;">编辑留言</h3>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #666; font-weight: bold;">主题标题</label>
+                            <input type="text" id="editTitle" value="${escapeHtml(message.title)}" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #666; font-weight: bold;">留言内容</label>
+                            <textarea id="editContent" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; min-height: 150px;">${escapeHtml(message.content)}</textarea>
+                        </div>
                         <div style="display: flex; gap: 10px;">
-                            <button onclick="editMessage(${message.id})" style="padding: 8px 15px; background: #8B6F47; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">✏️ 编辑</button>
-                            <button onclick="deleteMessage(${message.id})" style="padding: 8px 15px; background: #d9534f; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">🗑️ 删除</button>
+                            <button onclick="saveEditMessage(${message.id})" style="padding: 10px 20px; background: #5cb85c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">✅ 保存</button>
+                            <button onclick="cancelEditMessage()" style="padding: 10px 20px; background: #999; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">❌ 取消</button>
                         </div>
                     </div>
                 </div>
-                <div class="message-detail-content">${escapeHtml(message.content).replace(/\n/g, '<br>')}</div>
-                ${imagesHtml}
-                ${message.video_path ? `<div class="message-detail-media"><video controls><source src="${message.video_path}" type="video/mp4"></video></div>` : ''}
-                ${filesHtml}
             </div>
         `;
         
