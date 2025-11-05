@@ -174,6 +174,62 @@ def get_messages():
     messages = Message.query.filter_by(approved=True).order_by(Message.created_at.desc()).all()
     return jsonify([msg.to_dict() for msg in messages])
 
+# 编辑留言
+@app.route('/api/messages/<int:msg_id>', methods=['PUT'])
+def update_message(msg_id):
+    try:
+        message = Message.query.get(msg_id)
+        if not message:
+            return jsonify({'error': '留言不存在'}), 404
+        
+        data = request.get_json()
+        title = data.get('title', '').strip()
+        content = data.get('content', '').strip()
+        
+        if not title or not content:
+            return jsonify({'error': '主题和内容不能为空'}), 400
+        
+        message.title = title
+        message.content = content
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': '留言已更新'}), 200
+    except Exception as e:
+        print(f"❌ 编辑留言出错: {str(e)}")
+        return jsonify({'error': '编辑失败'}), 500
+
+# 删除留言
+@app.route('/api/messages/<int:msg_id>', methods=['DELETE'])
+def delete_message_api(msg_id):
+    try:
+        message = Message.query.get(msg_id)
+        if not message:
+            return jsonify({'error': '留言不存在'}), 404
+        
+        # 删除上传的文件
+        if message.image_paths:
+            file_list = [f.strip() for f in message.image_paths.split(',') if f.strip()]
+            for file_path in file_list:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+        
+        if message.video_path and os.path.exists(message.video_path):
+            os.remove(message.video_path)
+        
+        if message.file_paths:
+            file_list = [f.strip() for f in message.file_paths.split(',') if f.strip()]
+            for file_path in file_list:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+        
+        db.session.delete(message)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': '留言已删除'}), 200
+    except Exception as e:
+        print(f"❌ 删除留言出错: {str(e)}")
+        return jsonify({'error': '删除失败'}), 500
+
 # 提交新留言
 @app.route('/api/messages', methods=['POST'])
 def submit_message():
