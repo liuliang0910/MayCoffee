@@ -17,7 +17,7 @@ app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB 最大文件大小
 # ========== Server酱微信通知配置 ==========
 # 获取方法：访问 https://sct.ftqq.com/ 用微信扫码登录，复制你的 SCKEY
 SERVERCHAN_CONFIG = {
-    'sckey': 'SCT301624T953Ja1BHVXxbKI0zYgZQ0GhM'  # 替换为你的 Server酱 SCKEY
+    'sckey': 'SCT301624TZDqlL8mmujOqH7Q7jnJK52kU'  # 替换为你的 Server酱 SCKEY
 }
 
 # 创建上传文件夹
