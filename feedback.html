@@ -712,26 +712,33 @@
     </header>
 
     <main class="feedback-container">
-        <!-- 简化的发帖框 -->
+        <!-- 论坛风格的发帖区域 -->
         <div style="max-width: 1000px; margin: 40px auto; padding: 0 20px;">
+            <!-- 主题区域 -->
+            <div style="background: linear-gradient(135deg, #8B6F47 0%, #6b5535 100%); color: white; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <h2 style="margin: 0 0 10px 0; font-size: 28px;">💬 发表新留言</h2>
+                <p style="margin: 0; opacity: 0.9; font-size: 14px;">分享你的想法，与我们交流</p>
+            </div>
+
+            <!-- 发帖框 -->
             <div class="user-info-section" id="postUserInfoSection"></div>
-            <div class="comment-box">
+            <div class="comment-box" style="border: 2px solid #8B6F47; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
                 <div class="comment-input-wrapper">
                     <div class="comment-avatar" id="postUserAvatar">用</div>
                     <div class="comment-input-area">
-                        <textarea id="postContent" placeholder="分享你的想法..."></textarea>
+                        <textarea id="postContent" placeholder="分享你的想法..." style="min-height: 120px;"></textarea>
                     </div>
                 </div>
-                <div class="comment-toolbar">
+                <div class="comment-toolbar" style="border-top: 1px solid #eee; padding-top: 15px;">
                     <button class="toolbar-btn" onclick="insertPostImage()" title="插入图片">📷 图片</button>
                     <button class="toolbar-btn" onclick="insertPostVideo()" title="插入视频">🎥 视频</button>
                     <button class="toolbar-btn" onclick="insertPostFile()" title="上传文件">📎 文件</button>
                     <button class="toolbar-btn" onclick="insertPostEmoji()" title="插入表情">😊 表情</button>
                 </div>
                 <div class="media-preview" id="postMediaPreview"></div>
-                <div class="comment-actions">
+                <div class="comment-actions" style="border-top: 1px solid #eee; padding-top: 15px;">
                     <button class="comment-cancel-btn" onclick="clearPostForm()">取消</button>
-                    <button class="comment-submit-btn" id="postSubmitBtn" onclick="submitPost()">发帖</button>
+                    <button class="comment-submit-btn" id="postSubmitBtn" onclick="submitPost()">发布留言</button>
                 </div>
             </div>
             <input type="file" id="postImageInput" accept="image/*" multiple style="display: none;">
@@ -739,6 +746,10 @@
             <input type="file" id="postFileInput" multiple style="display: none;">
         </div>
 
+        <!-- 分隔线 -->
+        <div style="max-width: 1000px; margin: 50px auto; padding: 0 20px;">
+            <hr style="border: none; border-top: 2px solid #eee; margin: 0;">
+        </div>
 
         <!-- 显示所有留言 -->
         <div id="listPageContainer" class="feedback-section">
