@@ -31,6 +31,60 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
 
+# ========== 短信发送函数 ==========
+def send_sms_notification(message_type, customer_name, content_preview):
+    """
+    发送短信通知
+    message_type: 'message' 表示新留言，'reply' 表示新回复
+    customer_name: 客户名字
+    content_preview: 内容预览（前50个字符）
+    """
+    try:
+        # 检查配置是否完整
+        if SMS_CONFIG['access_key_id'] == 'YOUR_ACCESS_KEY_ID':
+            print("⚠️  短信配置未完成，跳过发送短信")
+            return False
+        
+        # 创建阿里云客户端
+        client = AcsClient(
+            SMS_CONFIG['access_key_id'],
+            SMS_CONFIG['access_key_secret'],
+            SMS_CONFIG['region_id']
+        )
+        
+        # 创建短信请求
+        request = SendSmsRequest()
+        request.set_PhoneNumbers(SMS_CONFIG['phone_number'])
+        request.set_SignName(SMS_CONFIG['sign_name'])
+        request.set_TemplateCode(SMS_CONFIG['template_id'])
+        
+        # 准备短信参数
+        if message_type == 'message':
+            # 新留言通知
+            template_param = {
+                'type': '新留言',
+                'name': customer_name,
+                'content': content_preview
+            }
+        else:
+            # 新回复通知
+            template_param = {
+                'type': '新回复',
+                'name': customer_name,
+                'content': content_preview
+            }
+        
+        request.set_TemplateParam(json.dumps(template_param))
+        
+        # 发送短信
+        response = client.do_action_with_exception(request)
+        print(f"✅ 短信已发送: {response}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ 短信发送失败: {str(e)}")
+        return False
+
 # 定义回复模型
 class Reply(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -160,6 +214,10 @@ def submit_message():
         message.approved = True
         db.session.add(message)
         db.session.commit()
+        
+        # 发送短信通知
+        content_preview = content[:50] if len(content) > 50 else content
+        send_sms_notification('message', name, content_preview)
         
         return jsonify({'success': True, 'message': '留言已发布'}), 201
     except Exception as e:
@@ -295,6 +353,10 @@ def submit_reply(msg_id):
         
         db.session.add(reply)
         db.session.commit()
+        
+        # 发送短信通知
+        content_preview = content[:50] if len(content) > 50 else content
+        send_sms_notification('reply', name, content_preview)
         
         return jsonify({'success': True, 'message': '回复已发布', 'reply': reply.to_dict()}), 201
     except Exception as e:
