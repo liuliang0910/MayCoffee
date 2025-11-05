@@ -75,14 +75,18 @@ function renderMessages() {
         const videoHtml = msg.video_path ? `<div class="message-media"><video controls style="max-width: 100%; max-height: 400px;"><source src="${msg.video_path}" type="video/mp4"></video></div>` : '';
         
         return `
-            <div class="message-item">
-                <div class="message-header">
-                    <span class="message-name">${escapeHtml(msg.name)}</span>
-                    <span class="message-time">${msg.created_at}</span>
+            <div class="message-item" onclick="openMessageDetail(${msg.id})" style="cursor: pointer;">
+                <div style="margin-bottom: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: #333; font-size: 16px; font-weight: bold;">${escapeHtml(msg.title || msg.name)}</h4>
+                    <div class="message-header">
+                        <span class="message-name">${escapeHtml(msg.name)}</span>
+                        <span class="message-time">${msg.created_at}</span>
+                    </div>
                 </div>
                 <div class="message-content">${escapeHtml(msg.content).replace(/\n/g, '<br>')}</div>
                 ${imagesHtml}
                 ${videoHtml}
+                <div style="margin-top: 10px; color: #8B6F47; font-size: 14px;">点击查看详情和回复 →</div>
             </div>
         `;
     }).join('');
@@ -187,6 +191,13 @@ function escapeHtml(text) {
         "'": '&#039;'
     };
     return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// 打开留言详情
+function openMessageDetail(messageId) {
+    // 保存消息ID到 sessionStorage，然后跳转到 feedback.html
+    sessionStorage.setItem('viewMessageId', messageId);
+    window.location.href = 'feedback.html';
 }
 
 // 事件监听
