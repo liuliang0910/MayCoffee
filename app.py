@@ -113,6 +113,7 @@ class Message(db.Model):
     image_path = db.Column(db.String(255))  # 保留旧字段用于兼容
     image_paths = db.Column(db.Text)  # 新字段：存储多张图片，用逗号分隔
     video_path = db.Column(db.String(255))
+    file_paths = db.Column(db.Text)  # 新字段：存储多个文件，用逗号分隔
     approved = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     replies = db.relationship('Reply', backref='message', lazy=True, cascade='all, delete-orphan')
@@ -126,6 +127,11 @@ class Message(db.Model):
             # 兼容旧数据
             image_list = [self.image_path]
         
+        # 处理文件列表
+        file_list = []
+        if self.file_paths:
+            file_list = [f.strip() for f in self.file_paths.split(',') if f.strip()]
+        
         return {
             'id': self.id,
             'name': self.name,
@@ -134,6 +140,7 @@ class Message(db.Model):
             'image_paths': image_list,  # 返回列表
             'image_path': image_list[0] if image_list else None,  # 兼容旧代码
             'video_path': self.video_path,
+            'file_paths': file_list,  # 返回文件列表
             'approved': self.approved,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             'replies': [reply.to_dict() for reply in self.replies]
@@ -147,6 +154,11 @@ with app.app_context():
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'avi', 'mov', 'webm'}
 
 def allowed_file(filename):
+    # 允许所有文件类型
+    return '.' in filename
+
+def allowed_upload_file(filename):
+    # 用于媒体文件的检查
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # 首页路由
