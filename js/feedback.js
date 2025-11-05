@@ -224,9 +224,12 @@ async function loadMessages() {
 
         container.innerHTML = messages.map(msg => `
             <div class="message-item" onclick="viewMessageDetail(${msg.id})" style="cursor: pointer;">
-                <div class="message-header">
-                    <span class="message-name">${escapeHtml(msg.name)}</span>
-                    <span class="message-time">${msg.created_at}</span>
+                <div style="margin-bottom: 10px;">
+                    <h4 style="margin: 0 0 8px 0; color: #333; font-size: 16px; font-weight: bold;">${escapeHtml(msg.title)}</h4>
+                    <div class="message-header">
+                        <span class="message-name">${escapeHtml(msg.name)}</span>
+                        <span class="message-time">${msg.created_at}</span>
+                    </div>
                 </div>
                 <div class="message-content">${escapeHtml(msg.content).replace(/\n/g, '<br>')}</div>
                 <div style="margin-top: 10px; color: #8B6F47; font-size: 14px;">点击查看详情和回复 →</div>
@@ -283,9 +286,12 @@ async function viewMessageDetail(messageId) {
         
         const detailHtml = `
             <div class="message-detail-card">
-                <div class="message-detail-header">
-                    <span class="message-detail-name">${escapeHtml(message.name)}</span>
-                    <span class="message-detail-time">${message.created_at}</span>
+                <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #8B6F47;">
+                    <h3 style="margin: 0 0 10px 0; color: #333; font-size: 22px;">${escapeHtml(message.title)}</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #666; font-size: 14px;">👤 ${escapeHtml(message.name)}</span>
+                        <span style="color: #999; font-size: 12px;">${message.created_at}</span>
+                    </div>
                 </div>
                 <div class="message-detail-content">${escapeHtml(message.content).replace(/\n/g, '<br>')}</div>
                 ${imagesHtml}
