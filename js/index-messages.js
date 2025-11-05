@@ -86,43 +86,43 @@ function renderMessages() {
         }
         
         return `
-            <div class="message-item" onclick="openMessageDetail(${msg.id})" style="cursor: pointer; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 25px; margin-bottom: 20px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <div class="message-item" onclick="openMessageDetail(${msg.id})" style="cursor: pointer; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 12px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.05); hover: box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                 <!-- 头部：用户头像、名字和时间 -->
-                <div style="display: flex; gap: 12px; align-items: flex-start; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0;">
+                <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px;">
                     <!-- 用户头像 -->
                     <div style="flex-shrink: 0;">
-                        <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #8B6F47 0%, #A0826D 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">${userInitial}</div>
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #8B6F47 0%, #A0826D 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold;">${userInitial}</div>
                     </div>
                     
-                    <!-- 用户信息 -->
-                    <div style="flex: 1;">
-                        <div style="color: #333; font-weight: bold; font-size: 15px; margin-bottom: 4px;">${escapeHtml(msg.name)}</div>
-                        <div style="color: #999; font-size: 12px;">${msg.created_at}</div>
+                    <!-- 用户信息和标题 -->
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                            <div style="color: #333; font-weight: bold; font-size: 14px;">${escapeHtml(msg.name)}</div>
+                            <div style="color: #999; font-size: 11px; flex-shrink: 0;">${msg.created_at}</div>
+                        </div>
+                        <h3 style="margin: 0 0 8px 0; color: #0066cc; font-size: 15px; font-weight: bold; word-break: break-word; line-height: 1.3;">${escapeHtml(msg.title || msg.name)}</h3>
                     </div>
                 </div>
                 
-                <!-- 标题 -->
-                <h3 style="margin: 0 0 15px 0; color: #0066cc; font-size: 18px; font-weight: bold; word-break: break-word; line-height: 1.4;">${escapeHtml(msg.title || msg.name)}</h3>
-                
-                <!-- 内容 -->
-                <div style="color: #555; font-size: 14px; line-height: 1.8; word-break: break-word; margin-bottom: 15px;">${escapeHtml(msg.content).substring(0, 200).replace(/\n/g, ' ')}${msg.content.length > 200 ? '...' : ''}</div>
-                
-                <!-- 图片缩略图 -->
-                ${msg.image_paths && msg.image_paths.length > 0 ? `
-                    <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;">
-                        ${msg.image_paths.slice(0, 3).map(imgPath => 
-                            `<div style="width: 80px; height: 80px; border-radius: 4px; overflow: hidden; background: #f5f5f5;">
-                                <img src="${imgPath}" alt="留言配图" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>`
-                        ).join('')}
-                        ${msg.image_paths.length > 3 ? `<div style="width: 80px; height: 80px; border-radius: 4px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">+${msg.image_paths.length - 3}</div>` : ''}
+                <!-- 内容和图片 -->
+                <div style="display: flex; gap: 10px;">
+                    <!-- 文字内容 -->
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="color: #555; font-size: 13px; line-height: 1.6; word-break: break-word;">${escapeHtml(msg.content).substring(0, 150).replace(/\n/g, ' ')}${msg.content.length > 150 ? '...' : ''}</div>
                     </div>
-                ` : ''}
+                    
+                    <!-- 第一张图片缩略图 -->
+                    ${msg.image_paths && msg.image_paths.length > 0 ? `
+                        <div style="flex-shrink: 0; width: 60px; height: 60px; border-radius: 4px; overflow: hidden; background: #f5f5f5;">
+                            <img src="${msg.image_paths[0]}" alt="留言配图" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    ` : ''}
+                </div>
                 
                 <!-- 底部：互动信息 -->
-                <div style="display: flex; gap: 20px; padding-top: 12px; border-top: 1px solid #f0f0f0; color: #8B6F47; font-size: 13px; font-weight: bold;">
-                    <span style="cursor: pointer;">💬 点击查看详情</span>
-                    <span style="color: #999;">${msg.image_paths ? msg.image_paths.length + ' 张图片' : ''}</span>
+                <div style="display: flex; gap: 15px; padding-top: 10px; margin-top: 10px; border-top: 1px solid #f0f0f0; color: #8B6F47; font-size: 12px; font-weight: bold;">
+                    <span style="cursor: pointer;">💬 查看详情</span>
+                    ${msg.image_paths ? `<span style="color: #999;">${msg.image_paths.length} 张图片</span>` : ''}
                 </div>
             </div>
         `;
