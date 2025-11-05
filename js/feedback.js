@@ -1,7 +1,7 @@
 // ========== 全局变量 ==========
 let currentMessageId = null;
 let selectedFiles = { image: null, video: null };
-let postFiles = { image: null, video: null };  // 发帖文件
+let postFiles = { images: [], video: null };  // 发帖文件，支持多张图片
 let currentUser = { name: '', email: '' };
 
 // ========== 用户信息管理 ==========
@@ -36,8 +36,9 @@ function insertPostEmoji() {
 
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('postImageInput').addEventListener('change', function(e) {
-        if (e.target.files[0]) {
-            postFiles.image = e.target.files[0];
+        if (e.target.files.length > 0) {
+            // 支持多张图片，添加到数组
+            postFiles.images = Array.from(e.target.files);
             showPostMediaPreview();
         }
     });
@@ -54,14 +55,17 @@ function showPostMediaPreview() {
     const preview = document.getElementById('postMediaPreview');
     preview.innerHTML = '';
     
-    if (postFiles.image) {
-        const url = URL.createObjectURL(postFiles.image);
-        preview.innerHTML += `
-            <div class="media-item">
-                <img src="${url}" alt="预览">
-                <button class="media-remove" onclick="removePostImage()">×</button>
-            </div>
-        `;
+    // 显示所有图片
+    if (postFiles.images && postFiles.images.length > 0) {
+        postFiles.images.forEach((image, index) => {
+            const url = URL.createObjectURL(image);
+            preview.innerHTML += `
+                <div class="media-item">
+                    <img src="${url}" alt="预览">
+                    <button class="media-remove" onclick="removePostImage(${index})">×</button>
+                </div>
+            `;
+        });
     }
     
     if (postFiles.video) {
@@ -75,9 +79,13 @@ function showPostMediaPreview() {
     }
 }
 
-function removePostImage() {
-    postFiles.image = null;
-    document.getElementById('postImageInput').value = '';
+function removePostImage(index) {
+    // 删除指定索引的图片
+    postFiles.images.splice(index, 1);
+    // 如果没有图片了，清空输入框
+    if (postFiles.images.length === 0) {
+        document.getElementById('postImageInput').value = '';
+    }
     showPostMediaPreview();
 }
 
@@ -89,7 +97,7 @@ function removePostVideo() {
 
 function clearPostForm() {
     document.getElementById('postContent').value = '';
-    postFiles = { image: null, video: null };
+    postFiles = { images: [], video: null };
     document.getElementById('postImageInput').value = '';
     document.getElementById('postVideoInput').value = '';
     document.getElementById('postMediaPreview').innerHTML = '';
@@ -113,8 +121,11 @@ async function submitPost() {
     formData.append('email', currentUser.email);
     formData.append('content', content);
     
-    if (postFiles.image) {
-        formData.append('image', postFiles.image);
+    // 支持多张图片
+    if (postFiles.images && postFiles.images.length > 0) {
+        postFiles.images.forEach((image) => {
+            formData.append('images', image);
+        });
     }
     
     if (postFiles.video) {
