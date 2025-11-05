@@ -3,8 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
-from aliyunsdkcore.client import AcsClient
-from aliyunsdkdysmsapi.request.v20170525 import SendSmsRequest
+import requests
 import json
 
 app = Flask(__name__, static_folder='.', static_url_path='', template_folder='templates')
@@ -15,15 +14,10 @@ app.config['SECRET_KEY'] = 'your-secret-key-change-this'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB 最大文件大小
 
-# ========== 短信配置 ==========
-# 请在这里填入你的阿里云短信配置
-SMS_CONFIG = {
-    'access_key_id': 'YOUR_ACCESS_KEY_ID',  # 替换为你的阿里云 AccessKeyId
-    'access_key_secret': 'YOUR_ACCESS_KEY_SECRET',  # 替换为你的阿里云 AccessKeySecret
-    'region_id': 'cn-hangzhou',  # 阿里云地区
-    'sign_name': '你的短信签名',  # 替换为你的短信签名（需要在阿里云备案）
-    'template_id': 'SMS_XXXXXX',  # 替换为你的短信模板 ID
-    'phone_number': 'YOUR_PHONE_NUMBER'  # 替换为你要接收通知的手机号
+# ========== Server酱微信通知配置 ==========
+# 获取方法：访问 https://sct.ftqq.com/ 用微信扫码登录，复制你的 SCKEY
+SERVERCHAN_CONFIG = {
+    'sckey': 'YOUR_SCKEY'  # 替换为你的 Server酱 SCKEY
 }
 
 # 创建上传文件夹
@@ -31,58 +25,49 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
 
-# ========== 短信发送函数 ==========
-def send_sms_notification(message_type, customer_name, content_preview):
+# ========== Server酱微信通知函数 ==========
+def send_wechat_notification(message_type, customer_name, content_preview):
     """
-    发送短信通知
+    通过 Server酱 发送微信通知
     message_type: 'message' 表示新留言，'reply' 表示新回复
     customer_name: 客户名字
-    content_preview: 内容预览（前50个字符）
+    content_preview: 内容预览（前100个字符）
     """
     try:
         # 检查配置是否完整
-        if SMS_CONFIG['access_key_id'] == 'YOUR_ACCESS_KEY_ID':
-            print("⚠️  短信配置未完成，跳过发送短信")
+        if SERVERCHAN_CONFIG['sckey'] == 'YOUR_SCKEY':
+            print("⚠️  Server酱配置未完成，跳过发送微信通知")
             return False
         
-        # 创建阿里云客户端
-        client = AcsClient(
-            SMS_CONFIG['access_key_id'],
-            SMS_CONFIG['access_key_secret'],
-            SMS_CONFIG['region_id']
-        )
-        
-        # 创建短信请求
-        request = SendSmsRequest()
-        request.set_PhoneNumbers(SMS_CONFIG['phone_number'])
-        request.set_SignName(SMS_CONFIG['sign_name'])
-        request.set_TemplateCode(SMS_CONFIG['template_id'])
-        
-        # 准备短信参数
+        # 准备通知内容
         if message_type == 'message':
-            # 新留言通知
-            template_param = {
-                'type': '新留言',
-                'name': customer_name,
-                'content': content_preview
-            }
+            title = f"🔔 新留言 - {customer_name}"
+            desp = f"**客户名字**: {customer_name}\n\n**内容**: {content_preview}"
         else:
-            # 新回复通知
-            template_param = {
-                'type': '新回复',
-                'name': customer_name,
-                'content': content_preview
-            }
+            title = f"💬 新回复 - {customer_name}"
+            desp = f"**回复人**: {customer_name}\n\n**内容**: {content_preview}"
         
-        request.set_TemplateParam(json.dumps(template_param))
+        # Server酱 API 地址
+        url = f"https://sct.ftqq.com/{SERVERCHAN_CONFIG['sckey']}.send"
         
-        # 发送短信
-        response = client.do_action_with_exception(request)
-        print(f"✅ 短信已发送: {response}")
-        return True
+        # 发送请求
+        data = {
+            'text': title,
+            'desp': desp
+        }
+        
+        response = requests.post(url, data=data, timeout=10)
+        result = response.json()
+        
+        if result.get('errno') == 0:
+            print(f"✅ 微信通知已发送: {title}")
+            return True
+        else:
+            print(f"❌ 微信通知发送失败: {result.get('errmsg', '未知错误')}")
+            return False
         
     except Exception as e:
-        print(f"❌ 短信发送失败: {str(e)}")
+        print(f"❌ 微信通知发送异常: {str(e)}")
         return False
 
 # 定义回复模型
@@ -215,9 +200,9 @@ def submit_message():
         db.session.add(message)
         db.session.commit()
         
-        # 发送短信通知
-        content_preview = content[:50] if len(content) > 50 else content
-        send_sms_notification('message', name, content_preview)
+        # 发送微信通知
+        content_preview = content[:100] if len(content) > 100 else content
+        send_wechat_notification('message', name, content_preview)
         
         return jsonify({'success': True, 'message': '留言已发布'}), 201
     except Exception as e:
