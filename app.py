@@ -50,19 +50,22 @@ class Message(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    image_path = db.Column(db.String(255))
+    image_paths = db.Column(db.Text)  # 改为存储多张图片，用逗号分隔
     video_path = db.Column(db.String(255))
     approved = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
     replies = db.relationship('Reply', backref='message', lazy=True, cascade='all, delete-orphan')
 
     def to_dict(self):
+        # 将逗号分隔的图片路径转换为列表
+        image_list = [img.strip() for img in self.image_paths.split(',') if img.strip()] if self.image_paths else []
         return {
             'id': self.id,
             'name': self.name,
             'email': self.email,
             'content': self.content,
-            'image_path': self.image_path,
+            'image_paths': image_list,  # 返回列表而不是字符串
+            'image_path': image_list[0] if image_list else None,  # 兼容旧代码
             'video_path': self.video_path,
             'approved': self.approved,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
@@ -103,13 +106,26 @@ def submit_message():
         
         message = Message(name=name, email=email, content=content)
         
-        # 处理图片上传
-        if 'image' in request.files:
+        # 处理多张图片上传
+        image_paths = []
+        if 'images' in request.files:
+            files = request.files.getlist('images')
+            for file in files:
+                if file and file.filename and allowed_file(file.filename):
+                    filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    image_paths.append(f"uploads/{filename}")
+        
+        # 兼容旧的单图片上传方式
+        if 'image' in request.files and not image_paths:
             file = request.files['image']
             if file and file.filename and allowed_file(file.filename):
                 filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                message.image_path = f"uploads/{filename}"
+                image_paths.append(f"uploads/{filename}")
+        
+        if image_paths:
+            message.image_paths = ','.join(image_paths)
         
         # 处理视频上传
         if 'video' in request.files:
