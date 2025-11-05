@@ -579,6 +579,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 加载留言
     loadMessages();
+    
+    // 检查是否从主页跳转过来，需要查看某个留言的详情
+    const viewMessageId = sessionStorage.getItem('viewMessageId');
+    if (viewMessageId) {
+        sessionStorage.removeItem('viewMessageId');
+        // 延迟一下，确保留言已加载
+        setTimeout(() => {
+            viewMessageDetail(parseInt(viewMessageId));
+        }, 500);
+    }
 });
 
 function updatePostUserInfo() {
