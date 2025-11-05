@@ -209,6 +209,17 @@ async function viewMessageDetail(messageId) {
         document.getElementById('detailPageContainer').style.display = 'block';
         
         // 渲染留言详情
+        // 支持多张图片
+        let imagesHtml = '';
+        if (message.image_paths && message.image_paths.length > 0) {
+            imagesHtml = '<div class="message-detail-media">' + 
+                message.image_paths.map(img => `<img src="${img}" alt="留言图片">`).join('') + 
+                '</div>';
+        } else if (message.image_path) {
+            // 兼容旧数据
+            imagesHtml = `<div class="message-detail-media"><img src="${message.image_path}" alt="留言图片"></div>`;
+        }
+        
         const detailHtml = `
             <div class="message-detail-card">
                 <div class="message-detail-header">
@@ -216,7 +227,7 @@ async function viewMessageDetail(messageId) {
                     <span class="message-detail-time">${message.created_at}</span>
                 </div>
                 <div class="message-detail-content">${escapeHtml(message.content).replace(/\n/g, '<br>')}</div>
-                ${message.image_path ? `<div class="message-detail-media"><img src="${message.image_path}" alt="留言图片"></div>` : ''}
+                ${imagesHtml}
                 ${message.video_path ? `<div class="message-detail-media"><video controls><source src="${message.video_path}" type="video/mp4"></video></div>` : ''}
             </div>
         `;
