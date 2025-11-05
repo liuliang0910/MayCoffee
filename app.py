@@ -3,6 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
+from aliyunsdkcore.client import AcsClient
+from aliyunsdkdysmsapi.request.v20170525 import SendSmsRequest
+import json
 
 app = Flask(__name__, static_folder='.', static_url_path='', template_folder='templates')
 
@@ -11,6 +14,17 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///messages.db'
 app.config['SECRET_KEY'] = 'your-secret-key-change-this'
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB 最大文件大小
+
+# ========== 短信配置 ==========
+# 请在这里填入你的阿里云短信配置
+SMS_CONFIG = {
+    'access_key_id': 'YOUR_ACCESS_KEY_ID',  # 替换为你的阿里云 AccessKeyId
+    'access_key_secret': 'YOUR_ACCESS_KEY_SECRET',  # 替换为你的阿里云 AccessKeySecret
+    'region_id': 'cn-hangzhou',  # 阿里云地区
+    'sign_name': '你的短信签名',  # 替换为你的短信签名（需要在阿里云备案）
+    'template_id': 'SMS_XXXXXX',  # 替换为你的短信模板 ID
+    'phone_number': 'YOUR_PHONE_NUMBER'  # 替换为你要接收通知的手机号
+}
 
 # 创建上传文件夹
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
