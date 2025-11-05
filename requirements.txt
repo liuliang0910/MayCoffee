@@ -1,5 +1,4 @@
 Flask==2.3.3
 Flask-SQLAlchemy==3.0.5
 Werkzeug==2.3.7
-aliyun-python-sdk-core==2.13.36
-aliyun-python-sdk-dysmsapi==2.2.1
+requests==2.31.0

@@ -339,9 +339,9 @@ def submit_reply(msg_id):
         db.session.add(reply)
         db.session.commit()
         
-        # 发送短信通知
-        content_preview = content[:50] if len(content) > 50 else content
-        send_sms_notification('reply', name, content_preview)
+        # 发送微信通知
+        content_preview = content[:100] if len(content) > 100 else content
+        send_wechat_notification('reply', name, content_preview)
         
         return jsonify({'success': True, 'message': '回复已发布', 'reply': reply.to_dict()}), 201
     except Exception as e:
