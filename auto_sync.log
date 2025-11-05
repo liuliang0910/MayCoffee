@@ -1088,3 +1088,10 @@ fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could 
 fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
 [2025-11-06 02:30:31] 同步完成
 [2025-11-06 02:31:32] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443 
+[main 8bb6230] 自动同步 - 2025-11-06 02:31:32
+ 1 file changed, 7 insertions(+)
+To https://github.com/liuliang0910/MayCoffee.git
+   365dff1..8bb6230  main -> main
+[2025-11-06 02:32:53] 同步完成
+[2025-11-06 02:33:53] 检测到文件变化，开始同步...
