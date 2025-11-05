@@ -190,3 +190,11 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-05 20:02:52] 同步完成
 [2025-11-05 20:03:52] 检测到文件变化，开始同步...
+To https://github.com/liuliang0910/MayCoffee.git
+   ea37b97..ee7d089  main -> main
+[main ee7d089] 自动同步 - 2025-11-05 20:03:52
+ 3 files changed, 183 insertions(+)
+ create mode 100644 SMS_SETUP.md
+Everything up-to-date
+[2025-11-05 20:03:55] 同步完成
+[2025-11-05 20:04:55] 检测到文件变化，开始同步...
