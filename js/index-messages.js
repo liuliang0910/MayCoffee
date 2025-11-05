@@ -74,21 +74,27 @@ function renderMessages() {
         
         const videoHtml = msg.video_path ? `<div class="message-media"><video controls style="max-width: 100%; max-height: 400px;"><source src="${msg.video_path}" type="video/mp4"></video></div>` : '';
         
-        // 获取内容预览（前100个字符）
-        const contentPreview = msg.content.length > 100 ? msg.content.substring(0, 100) + '...' : msg.content;
+        // 获取内容预览（前150个字符）
+        const contentPreview = msg.content.length > 150 ? msg.content.substring(0, 150) + '...' : msg.content;
         
         // 获取用户名首字母作为头像
         const userInitial = msg.name ? msg.name.charAt(0).toUpperCase() : '用';
         
+        // 获取第一张图片用于卡片展示
+        let firstImageHtml = '';
+        if (msg.image_paths && msg.image_paths.length > 0) {
+            firstImageHtml = `<img src="${msg.image_paths[0]}" alt="留言配图" style="width: 100%; height: 100%; object-fit: cover;">`;
+        }
+        
         return `
-            <div class="message-item" onclick="openMessageDetail(${msg.id})" style="cursor: pointer; display: flex; gap: 15px; padding: 15px; border: 1px solid #eee; border-radius: 8px; background: #fff; transition: all 0.3s ease; margin-bottom: 15px;">
+            <div class="message-item" onclick="openMessageDetail(${msg.id})" style="cursor: pointer; display: flex; gap: 15px; padding: 15px; border: 1px solid #eee; border-radius: 8px; background: #fff; transition: all 0.3s ease; margin-bottom: 15px; hover: box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <!-- 用户头像 -->
                 <div style="flex-shrink: 0;">
                     <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #8B6F47 0%, #A0826D 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold;">${userInitial}</div>
                 </div>
                 
                 <!-- 内容区域 -->
-                <div style="flex: 1; min-width: 0;">
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
                     <!-- 头部：用户名和时间 -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="color: #333; font-weight: bold; font-size: 14px;">${escapeHtml(msg.name)}</span>
@@ -98,13 +104,20 @@ function renderMessages() {
                     <!-- 标题 -->
                     <h4 style="margin: 0 0 10px 0; color: #0066cc; font-size: 16px; font-weight: bold; word-break: break-word;">${escapeHtml(msg.title || msg.name)}</h4>
                     
-                    <!-- 内容预览 -->
-                    <div style="color: #666; font-size: 14px; line-height: 1.6; margin-bottom: 10px; word-break: break-word;">${escapeHtml(contentPreview).replace(/\n/g, ' ')}</div>
+                    <!-- 内容和图片的容器 -->
+                    <div style="display: flex; gap: 12px;">
+                        <!-- 文字内容 -->
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="color: #666; font-size: 14px; line-height: 1.6; word-break: break-word;">${escapeHtml(contentPreview).replace(/\n/g, ' ')}</div>
+                        </div>
+                        
+                        <!-- 图片缩略图 -->
+                        ${firstImageHtml ? `<div style="flex-shrink: 0; width: 120px; height: 120px; border-radius: 4px; overflow: hidden; background: #f5f5f5;">${firstImageHtml}</div>` : ''}
+                    </div>
                     
-                    <!-- 媒体预览 -->
-                    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-                        ${imagesHtml ? `<div style="max-width: 100px; max-height: 100px; border-radius: 4px; overflow: hidden;">${imagesHtml}</div>` : ''}
-                        ${videoHtml ? `<div style="max-width: 100px; max-height: 100px; border-radius: 4px; overflow: hidden;">${videoHtml}</div>` : ''}
+                    <!-- 底部：互动信息 -->
+                    <div style="display: flex; gap: 20px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #f0f0f0; color: #999; font-size: 12px;">
+                        <span>💬 点击查看详情和回复</span>
                     </div>
                 </div>
             </div>
