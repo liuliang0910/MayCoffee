@@ -640,25 +640,18 @@ function editPostUserInfo() {
     }
 }
 
-// 编辑留言
-async function editMessage(messageId) {
-    const response = await fetch('/api/messages');
-    const messages = await response.json();
-    const message = messages.find(m => m.id === messageId);
+// 开始编辑留言
+function startEditMessage(messageId) {
+    document.getElementById('messageViewMode').style.display = 'none';
+    document.getElementById('messageEditMode').style.display = 'block';
+}
+
+// 保存编辑的留言
+async function saveEditMessage(messageId) {
+    const newTitle = document.getElementById('editTitle').value.trim();
+    const newContent = document.getElementById('editContent').value.trim();
     
-    if (!message) {
-        alert('留言不存在');
-        return;
-    }
-    
-    // 弹出编辑对话框
-    const newTitle = prompt('请输入新的主题标题:', message.title);
-    if (newTitle === null) return;
-    
-    const newContent = prompt('请输入新的留言内容:', message.content);
-    if (newContent === null) return;
-    
-    if (!newTitle.trim() || !newContent.trim()) {
+    if (!newTitle || !newContent) {
         alert('主题和内容不能为空');
         return;
     }
@@ -670,8 +663,8 @@ async function editMessage(messageId) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                title: newTitle.trim(),
-                content: newContent.trim()
+                title: newTitle,
+                content: newContent
             })
         });
         
@@ -688,6 +681,12 @@ async function editMessage(messageId) {
         console.error('Error updating message:', error);
         alert('❌ 更新失败');
     }
+}
+
+// 取消编辑
+function cancelEditMessage() {
+    document.getElementById('messageViewMode').style.display = 'block';
+    document.getElementById('messageEditMode').style.display = 'none';
 }
 
 // 删除留言
