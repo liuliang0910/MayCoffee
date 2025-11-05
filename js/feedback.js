@@ -129,6 +129,7 @@ function removePostFile(index) {
 }
 
 function clearPostForm() {
+    document.getElementById('postTitle').value = '';
     document.getElementById('postContent').value = '';
     postFiles = { images: [], video: null, files: [] };
     document.getElementById('postImageInput').value = '';
@@ -138,7 +139,13 @@ function clearPostForm() {
 }
 
 async function submitPost() {
+    const title = document.getElementById('postTitle').value.trim();
     const content = document.getElementById('postContent').value.trim();
+    
+    if (!title) {
+        alert('请输入主题标题');
+        return;
+    }
     
     if (!content) {
         alert('请输入留言内容');
@@ -151,6 +158,7 @@ async function submitPost() {
     }
     
     const formData = new FormData();
+    formData.append('title', title);
     formData.append('name', currentUser.name);
     formData.append('email', currentUser.email);
     formData.append('content', content);

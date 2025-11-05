@@ -107,6 +107,7 @@ class Reply(db.Model):
 # 定义留言模型
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)  # 新字段：留言主题
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
@@ -134,6 +135,7 @@ class Message(db.Model):
         
         return {
             'id': self.id,
+            'title': self.title,  # 返回主题
             'name': self.name,
             'email': self.email,
             'content': self.content,
@@ -176,14 +178,15 @@ def get_messages():
 @app.route('/api/messages', methods=['POST'])
 def submit_message():
     try:
+        title = request.form.get('title', '').strip()
         name = request.form.get('name', '').strip()
         email = request.form.get('email', '').strip()
         content = request.form.get('content', '').strip()
         
-        if not name or not email or not content:
+        if not title or not name or not email or not content:
             return jsonify({'error': '请填写所有必填项'}), 400
         
-        message = Message(name=name, email=email, content=content)
+        message = Message(title=title, name=name, email=email, content=content)
         
         # 处理多张图片上传
         image_paths = []
