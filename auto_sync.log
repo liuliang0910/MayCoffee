@@ -6277,3 +6277,9 @@ fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Resolv
 fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
 [2025-11-11 11:25:20] 同步完成
 [2025-11-11 11:26:20] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[main 3570c60] 自动同步 - 2025-11-11 11:26:20
+ 1 file changed, 7 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[2025-11-11 11:27:20] 同步完成
+[2025-11-11 12:23:03] 检测到文件变化，开始同步...
