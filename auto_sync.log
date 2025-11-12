@@ -7803,3 +7803,10 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-12 17:28:09] 同步完成
 [2025-11-12 17:29:10] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Error in the HTTP2 framing layer
+[main a94141a] 自动同步 - 2025-11-12 17:29:10
+ 1 file changed, 8 insertions(+)
+To https://github.com/liuliang0910/MayCoffee.git
+   78066aa..a94141a  main -> main
+[2025-11-12 17:31:17] 同步完成
+[2025-11-12 17:32:17] 检测到文件变化，开始同步...
