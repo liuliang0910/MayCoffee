@@ -7088,3 +7088,9 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-12 12:50:30] 同步完成
 [2025-11-12 12:51:30] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Error in the HTTP2 framing layer
+[main 7694884] 自动同步 - 2025-11-12 12:51:30
+ 1 file changed, 8 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Failed to connect to github.com port 443 after 75141 ms: Couldn't connect to server
+[2025-11-12 12:56:11] 同步完成
+[2025-11-12 12:57:11] 检测到文件变化，开始同步...
