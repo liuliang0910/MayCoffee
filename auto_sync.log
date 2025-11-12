@@ -6860,3 +6860,9 @@ fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could 
 fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
 [2025-11-12 11:03:50] 同步完成
 [2025-11-12 11:04:50] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Error in the HTTP2 framing layer
+[main 94bc2bf] 自动同步 - 2025-11-12 11:04:50
+ 1 file changed, 7 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Error in the HTTP2 framing layer
+[2025-11-12 11:08:58] 同步完成
+[2025-11-12 11:09:58] 检测到文件变化，开始同步...
