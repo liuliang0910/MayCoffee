@@ -6738,3 +6738,9 @@ fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could 
 fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
 [2025-11-12 10:30:08] 同步完成
 [2025-11-12 10:31:08] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Recv failure: Can't assign requested address
+[main 305e0b3] 自动同步 - 2025-11-12 10:31:08
+ 1 file changed, 7 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[2025-11-12 10:35:05] 同步完成
+[2025-11-12 10:36:05] 检测到文件变化，开始同步...
