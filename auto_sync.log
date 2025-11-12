@@ -6929,3 +6929,9 @@ remote: Invalid username or token. Password authentication is not supported for 
 fatal: Authentication failed for 'https://github.com/liuliang0910/MayCoffee.git/'
 [2025-11-12 11:30:34] 同步完成
 [2025-11-12 11:31:34] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[main 8b4500e] 自动同步 - 2025-11-12 11:31:34
+ 1 file changed, 8 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[2025-11-12 11:31:34] 同步完成
+[2025-11-12 11:32:34] 检测到文件变化，开始同步...
