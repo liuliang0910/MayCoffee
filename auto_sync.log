@@ -7810,3 +7810,10 @@ To https://github.com/liuliang0910/MayCoffee.git
    78066aa..a94141a  main -> main
 [2025-11-12 17:31:17] 同步完成
 [2025-11-12 17:32:17] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Failed to connect to github.com port 443 after 75058 ms: Couldn't connect to server
+[main 53b8bb0] 自动同步 - 2025-11-12 17:32:17
+ 1 file changed, 8 insertions(+)
+To https://github.com/liuliang0910/MayCoffee.git
+   a94141a..53b8bb0  main -> main
+[2025-11-12 17:34:42] 同步完成
+[2025-11-12 17:35:42] 检测到文件变化，开始同步...
