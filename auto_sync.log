@@ -8805,3 +8805,9 @@ fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could 
 fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
 [2025-11-13 18:14:11] 同步完成
 [2025-11-13 18:15:11] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Resolving timed out after 1306558 milliseconds
+[main 9b869ab] 自动同步 - 2025-11-13 18:15:11
+ 1 file changed, 7 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[2025-11-13 18:37:21] 同步完成
+[2025-11-13 18:42:22] 检测到文件变化，开始同步...
