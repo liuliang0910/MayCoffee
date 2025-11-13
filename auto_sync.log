@@ -9550,3 +9550,9 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-14 00:15:34] 同步完成
 [2025-11-14 00:16:35] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443 
+[main 2a27f5b] 自动同步 - 2025-11-14 00:16:35
+ 1 file changed, 8 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443 
+[2025-11-14 00:16:37] 同步完成
+[2025-11-14 00:17:37] 检测到文件变化，开始同步...
