@@ -8745,3 +8745,9 @@ To https://github.com/liuliang0910/MayCoffee.git
    73a36cd..4ca7766  main -> main
 [2025-11-13 17:55:02] 同步完成
 [2025-11-13 17:56:03] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[main 776781b] 自动同步 - 2025-11-13 17:56:03
+ 1 file changed, 8 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[2025-11-13 17:56:08] 同步完成
+[2025-11-13 17:57:08] 检测到文件变化，开始同步...
