@@ -8705,3 +8705,9 @@ fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Resolv
 fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
 [2025-11-13 17:42:39] 同步完成
 [2025-11-13 17:43:39] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[main bd7271f] 自动同步 - 2025-11-13 17:43:39
+ 1 file changed, 7 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[2025-11-13 17:44:39] 同步完成
+[2025-11-13 17:45:37] 检测到文件变化，开始同步...
