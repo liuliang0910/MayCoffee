@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会员商品管理 - 五月咖啡</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #a37e58 0%, #d4a574 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #a37e58;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #8a6a4a;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .items-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .items-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .items-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .items-table td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .items-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .item-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html"><img src="images/1_主logo/五月咖啡 主LOGO 透明背景.svg" alt="五月咖啡 MayCoffee Logo"></a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="menu.html">产品菜单</a></li>
+                    <li><a href="about.html">关于我们</a></li>
+                    <li><a href="contact.html">联系我们</a></li>
+                    <li><a href="feedback.html">客户留言</a></li>
+                    <li><a href="member.html">会员中心</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="admin-container">
+        <div class="admin-header">
+            <div>
+                <h1 style="margin: 0 0 10px 0;">兑换商品管理</h1>
+                <p style="margin: 0; opacity: 0.9;">管理会员积分兑换商品</p>
+            </div>
+            <button class="btn btn-success" onclick="openAddModal()">+ 添加商品</button>
+        </div>
+
+        <div class="items-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>图片</th>
+                        <th>商品名称</th>
+                        <th>所需积分</th>
+                        <th>库存</th>
+                        <th>状态</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px;">加载中...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- 添加/编辑商品模态框 -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">添加商品</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="itemForm">
+                <input type="hidden" id="itemId">
+                
+                <div class="form-group">
+                    <label>商品名称 <span style="color: red;">*</span></label>
+                    <input type="text" id="itemName" placeholder="例如: 美式咖啡券" required>
+                </div>
+
+                <div class="form-group">
+                    <label>所需积分 <span style="color: red;">*</span></label>
+                    <input type="number" id="itemPoints" placeholder="例如: 50" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label>商品描述</label>
+                    <textarea id="itemDescription" placeholder="商品的详细描述..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>商品图片URL</label>
+                    <input type="text" id="itemImage" placeholder="https://...">
+                </div>
+
+                <div class="form-group">
+                    <label>库存数量 <span style="color: red;">*</span></label>
+                    <input type="number" id="itemStock" placeholder="例如: 100" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label>状态</label>
+                    <select id="itemActive">
+                        <option value="true">启用</option>
+                        <option value="false">停用</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">保存</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <div class="container">
+            <p>&copy; 2025 五月咖啡 MayCoffee. 版权所有.</p>
+            <div class="beian-info">
+                <a href="https://beian.miit.gov.cn/" target="_blank">粤ICP备2025493201号-1</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let allItems = [];
+
+        // 页面加载时获取商品列表
+        window.addEventListener('DOMContentLoaded', loadItems);
+
+        async function loadItems() {
+            try {
+                const response = await fetch('/api/redemption/items');
+                const result = await response.json();
+                
+                if (result.success) {
+                    allItems = result.items;
+                    renderItems();
+                }
+            } catch (error) {
+                console.error('加载商品失败:', error);
+                document.getElementById('itemsTableBody').innerHTML = 
+                    '<tr><td colspan="7" style="text-align: center; color: red;">加载失败</td></tr>';
+            }
+        }
+
+        function renderItems() {
+            const tbody = document.getElementById('itemsTableBody');
+            
+            if (allItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">暂无商品</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allItems.map(item => `
+                <tr>
+                    <td><img src="${item.image || 'https://via.placeholder.com/60'}" alt="${item.name}" class="item-image"></td>
+                    <td><strong>${item.name}</strong></td>
+                    <td style="color: #a37e58; font-weight: bold;">${item.points_required} 积分</td>
+                    <td>${item.stock}</td>
+                    <td>
+                        <span class="status-badge ${item.is_active ? 'status-active' : 'status-inactive'}">
+                            ${item.is_active ? '启用' : '停用'}
+                        </span>
+                    </td>
+                    <td>${item.created_at}</td>
+                    <td>
+                        <button class="btn btn-primary" style="padding: 6px 12px; margin-right: 5px;" onclick="editItem(${item.id})">编辑</button>
+                        <button class="btn btn-danger" style="padding: 6px 12px;" onclick="deleteItem(${item.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '添加商品';
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemId').value = '';
+            document.getElementById('itemModal').style.display = 'block';
+        }
+
+        function editItem(id) {
+            const item = allItems.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('modalTitle').textContent = '编辑商品';
+            document.getElementById('itemId').value = item.id;
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemPoints').value = item.points_required;
+            document.getElementById('itemDescription').value = item.description || '';
+            document.getElementById('itemImage').value = item.image || '';
+            document.getElementById('itemStock').value = item.stock;
+            document.getElementById('itemActive').value = item.is_active.toString();
+            document.getElementById('itemModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').style.display = 'none';
+        }
+
+        // 表单提交
+        document.getElementById('itemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const itemId = document.getElementById('itemId').value;
+            const data = {
+                name: document.getElementById('itemName').value,
+                points_required: parseInt(document.getElementById('itemPoints').value),
+                description: document.getElementById('itemDescription').value,
+                image: document.getElementById('itemImage').value,
+                stock: parseInt(document.getElementById('itemStock').value),
+                is_active: document.getElementById('itemActive').value === 'true'
+            };
+
+            try {
+                // 注意: 需要添加后端API支持添加和编辑商品
+                alert('此功能需要后端API支持。当前仅支持查看商品列表。');
+                closeModal();
+            } catch (error) {
+                alert('操作失败: ' + error.message);
+            }
+        });
+
+        async function deleteItem(id) {
+            if (!confirm('确认要删除这个商品吗?')) return;
+            
+            try {
+                // 注意: 需要添加后端API支持删除商品
+                alert('此功能需要后端API支持。');
+            } catch (error) {
+                alert('删除失败: ' + error.message);
+            }
+        }
+
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('itemModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+
+</body>
+</html>
