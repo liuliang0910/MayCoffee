@@ -14881,3 +14881,10 @@ fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Failed
 fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Failed to connect to github.com port 443 after 76088 ms: Couldn't connect to server
 [2025-11-16 17:25:58] 同步完成
 [2025-11-16 17:26:58] 检测到文件变化，开始同步...
+To https://github.com/liuliang0910/MayCoffee.git
+   e8fb80c..7fe1a84  main -> main
+[main 7fe1a84] 自动同步 - 2025-11-16 17:26:58
+ 1 file changed, 8 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Error in the HTTP2 framing layer
+[2025-11-16 17:27:27] 同步完成
+[2025-11-16 17:28:27] 检测到文件变化，开始同步...
