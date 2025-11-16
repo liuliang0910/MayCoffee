@@ -13195,3 +13195,10 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-14 16:23:23] 同步完成
 [2025-11-14 16:24:23] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Error in the HTTP2 framing layer
+[main 62bd94d] 自动同步 - 2025-11-14 16:24:23
+ 1 file changed, 8 insertions(+)
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/liuliang0910/MayCoffee.git/'
+[2025-11-16 11:09:00] 同步完成
+[2025-11-16 11:10:00] 检测到文件变化，开始同步...
