@@ -14833,3 +14833,12 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-16 17:05:07] 同步完成
 [2025-11-16 17:06:07] 检测到文件变化，开始同步...
+error: RPC failed; curl 28 Failed to connect to github.com port 443 after 75043 ms: Couldn't connect to server
+send-pack: unexpected disconnect while reading sideband packet
+fatal: the remote end hung up unexpectedly
+Everything up-to-date
+[main 3f3ff9b] 自动同步 - 2025-11-16 17:06:07
+ 1 file changed, 11 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Failed to connect to github.com port 443 after 75044 ms: Couldn't connect to server
+[2025-11-16 17:09:43] 同步完成
+[2025-11-16 17:10:43] 检测到文件变化，开始同步...
