@@ -148,6 +148,99 @@ class Message(db.Model):
             'replies': [reply.to_dict() for reply in self.replies]
         }
 
+# 会员模型
+class Member(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)  # 用户名
+    email = db.Column(db.String(100), unique=True, nullable=False)  # 邮箱
+    password = db.Column(db.String(200), nullable=False)  # 密码(加密)
+    phone = db.Column(db.String(20))  # 手机号
+    points = db.Column(db.Integer, default=0)  # 积分
+    level = db.Column(db.String(20), default='普通会员')  # 会员等级
+    avatar = db.Column(db.String(255), default='images/default-avatar.png')  # 头像
+    created_at = db.Column(db.DateTime, default=datetime.now)  # 注册时间
+    last_login = db.Column(db.DateTime)  # 最后登录时间
+    
+    # 关联积分记录
+    point_records = db.relationship('PointRecord', backref='member', lazy=True)
+    # 关联兑换记录
+    redemptions = db.relationship('Redemption', backref='member', lazy=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email,
+            'phone': self.phone,
+            'points': self.points,
+            'level': self.level,
+            'avatar': self.avatar,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'last_login': self.last_login.strftime('%Y-%m-%d %H:%M:%S') if self.last_login else None
+        }
+
+# 积分记录模型
+class PointRecord(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    member_id = db.Column(db.Integer, db.ForeignKey('member.id'), nullable=False)
+    points = db.Column(db.Integer, nullable=False)  # 积分变化(正数为增加,负数为减少)
+    reason = db.Column(db.String(200), nullable=False)  # 积分变化原因
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'member_id': self.member_id,
+            'points': self.points,
+            'reason': self.reason,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+# 兑换商品模型
+class RedemptionItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)  # 商品名称
+    points_required = db.Column(db.Integer, nullable=False)  # 所需积分
+    description = db.Column(db.Text)  # 商品描述
+    image = db.Column(db.String(255))  # 商品图片
+    stock = db.Column(db.Integer, default=999)  # 库存
+    is_active = db.Column(db.Boolean, default=True)  # 是否启用
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'points_required': self.points_required,
+            'description': self.description,
+            'image': self.image,
+            'stock': self.stock,
+            'is_active': self.is_active,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+# 兑换记录模型
+class Redemption(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    member_id = db.Column(db.Integer, db.ForeignKey('member.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('redemption_item.id'), nullable=False)
+    points_spent = db.Column(db.Integer, nullable=False)  # 消耗积分
+    status = db.Column(db.String(20), default='待领取')  # 状态:待领取/已领取/已取消
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    
+    # 关联兑换商品
+    item = db.relationship('RedemptionItem', backref='redemptions')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'member_id': self.member_id,
+            'item': self.item.to_dict() if self.item else None,
+            'points_spent': self.points_spent,
+            'status': self.status,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
 # 创建数据库表
 with app.app_context():
     db.create_all()
@@ -295,7 +388,18 @@ def submit_message():
         content_preview = content[:100] if len(content) > 100 else content
         send_wechat_notification('message', name, content_preview)
         
-        return jsonify({'success': True, 'message': '留言已发布'}), 201
+        # 如果是会员登录状态,自动增加5积分
+        member_id = session.get('member_id')
+        points_earned = 0
+        if member_id:
+            add_points(member_id, 5, '发表留言')
+            points_earned = 5
+        
+        response_message = '留言已发布'
+        if points_earned > 0:
+            response_message += f'!恭喜获得{points_earned}积分'
+        
+        return jsonify({'success': True, 'message': response_message}), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -437,7 +541,18 @@ def submit_reply(msg_id):
         content_preview = content[:100] if len(content) > 100 else content
         send_wechat_notification('reply', name, content_preview)
         
-        return jsonify({'success': True, 'message': '回复已发布', 'reply': reply.to_dict()}), 201
+        # 如果是会员登录状态,自动增加2积分
+        member_id = session.get('member_id')
+        points_earned = 0
+        if member_id:
+            add_points(member_id, 2, '发表回复')
+            points_earned = 2
+        
+        response_message = '回复已发布'
+        if points_earned > 0:
+            response_message += f'!恭喜获得{points_earned}积分'
+        
+        return jsonify({'success': True, 'message': response_message, 'reply': reply.to_dict()}), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -454,6 +569,263 @@ def get_replies(msg_id):
         return jsonify([reply.to_dict() for reply in top_replies])
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# ========== 会员系统 API ==========
+
+# 会员注册
+@app.route('/api/member/register', methods=['POST'])
+def member_register():
+    try:
+        data = request.get_json()
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip()
+        password = data.get('password', '').strip()
+        phone = data.get('phone', '').strip()
+        
+        if not username or not email or not password:
+            return jsonify({'error': '用户名、邮箱和密码不能为空'}), 400
+        
+        # 检查用户名是否已存在
+        if Member.query.filter_by(username=username).first():
+            return jsonify({'error': '用户名已存在'}), 400
+        
+        # 检查邮箱是否已存在
+        if Member.query.filter_by(email=email).first():
+            return jsonify({'error': '邮箱已被注册'}), 400
+        
+        # 创建新会员(密码简单加密:实际生产环境应使用bcrypt等)
+        import hashlib
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        
+        member = Member(
+            username=username,
+            email=email,
+            password=password_hash,
+            phone=phone,
+            points=10  # 注册赠送10积分
+        )
+        
+        db.session.add(member)
+        db.session.commit()
+        
+        # 添加积分记录
+        point_record = PointRecord(
+            member_id=member.id,
+            points=10,
+            reason='新用户注册奖励'
+        )
+        db.session.add(point_record)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': '注册成功!赠送10积分',
+            'member': member.to_dict()
+        }), 201
+    except Exception as e:
+        print(f"❌ 注册失败: {str(e)}")
+        return jsonify({'error': '注册失败'}), 500
+
+# 会员登录
+@app.route('/api/member/login', methods=['POST'])
+def member_login():
+    try:
+        data = request.get_json()
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not username or not password:
+            return jsonify({'error': '用户名和密码不能为空'}), 400
+        
+        # 查找会员
+        member = Member.query.filter_by(username=username).first()
+        if not member:
+            return jsonify({'error': '用户名或密码错误'}), 401
+        
+        # 验证密码
+        import hashlib
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        if member.password != password_hash:
+            return jsonify({'error': '用户名或密码错误'}), 401
+        
+        # 更新最后登录时间
+        member.last_login = datetime.now()
+        db.session.commit()
+        
+        # 保存登录状态到session
+        session['member_id'] = member.id
+        session['member_username'] = member.username
+        
+        return jsonify({
+            'success': True,
+            'message': '登录成功',
+            'member': member.to_dict()
+        }), 200
+    except Exception as e:
+        print(f"❌ 登录失败: {str(e)}")
+        return jsonify({'error': '登录失败'}), 500
+
+# 会员登出
+@app.route('/api/member/logout', methods=['POST'])
+def member_logout():
+    session.pop('member_id', None)
+    session.pop('member_username', None)
+    return jsonify({'success': True, 'message': '已退出登录'}), 200
+
+# 获取当前会员信息
+@app.route('/api/member/info', methods=['GET'])
+def get_member_info():
+    try:
+        member_id = session.get('member_id')
+        if not member_id:
+            return jsonify({'error': '未登录'}), 401
+        
+        member = Member.query.get(member_id)
+        if not member:
+            return jsonify({'error': '会员不存在'}), 404
+        
+        return jsonify({
+            'success': True,
+            'member': member.to_dict()
+        }), 200
+    except Exception as e:
+        print(f"❌ 获取会员信息失败: {str(e)}")
+        return jsonify({'error': '获取信息失败'}), 500
+
+# 获取积分记录
+@app.route('/api/member/points/records', methods=['GET'])
+def get_point_records():
+    try:
+        member_id = session.get('member_id')
+        if not member_id:
+            return jsonify({'error': '未登录'}), 401
+        
+        records = PointRecord.query.filter_by(member_id=member_id).order_by(PointRecord.created_at.desc()).all()
+        return jsonify({
+            'success': True,
+            'records': [record.to_dict() for record in records]
+        }), 200
+    except Exception as e:
+        print(f"❌ 获取积分记录失败: {str(e)}")
+        return jsonify({'error': '获取记录失败'}), 500
+
+# 获取兑换商品列表
+@app.route('/api/redemption/items', methods=['GET'])
+def get_redemption_items():
+    try:
+        items = RedemptionItem.query.filter_by(is_active=True).order_by(RedemptionItem.points_required.asc()).all()
+        return jsonify({
+            'success': True,
+            'items': [item.to_dict() for item in items]
+        }), 200
+    except Exception as e:
+        print(f"❌ 获取兑换商品失败: {str(e)}")
+        return jsonify({'error': '获取商品失败'}), 500
+
+# 兑换商品
+@app.route('/api/redemption/redeem', methods=['POST'])
+def redeem_item():
+    try:
+        member_id = session.get('member_id')
+        if not member_id:
+            return jsonify({'error': '请先登录'}), 401
+        
+        data = request.get_json()
+        item_id = data.get('item_id')
+        
+        member = Member.query.get(member_id)
+        item = RedemptionItem.query.get(item_id)
+        
+        if not item or not item.is_active:
+            return jsonify({'error': '商品不存在或已下架'}), 404
+        
+        if item.stock <= 0:
+            return jsonify({'error': '商品库存不足'}), 400
+        
+        if member.points < item.points_required:
+            return jsonify({'error': f'积分不足,需要{item.points_required}积分,当前{member.points}积分'}), 400
+        
+        # 扣除积分
+        member.points -= item.points_required
+        
+        # 减少库存
+        item.stock -= 1
+        
+        # 创建兑换记录
+        redemption = Redemption(
+            member_id=member_id,
+            item_id=item_id,
+            points_spent=item.points_required
+        )
+        
+        # 添加积分记录
+        point_record = PointRecord(
+            member_id=member_id,
+            points=-item.points_required,
+            reason=f'兑换商品:{item.name}'
+        )
+        
+        db.session.add(redemption)
+        db.session.add(point_record)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'兑换成功!已兑换{item.name},请到店领取',
+            'redemption': redemption.to_dict(),
+            'remaining_points': member.points
+        }), 200
+    except Exception as e:
+        print(f"❌ 兑换失败: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': '兑换失败'}), 500
+
+# 获取兑换记录
+@app.route('/api/member/redemptions', methods=['GET'])
+def get_member_redemptions():
+    try:
+        member_id = session.get('member_id')
+        if not member_id:
+            return jsonify({'error': '未登录'}), 401
+        
+        redemptions = Redemption.query.filter_by(member_id=member_id).order_by(Redemption.created_at.desc()).all()
+        return jsonify({
+            'success': True,
+            'redemptions': [r.to_dict() for r in redemptions]
+        }), 200
+    except Exception as e:
+        print(f"❌ 获取兑换记录失败: {str(e)}")
+        return jsonify({'error': '获取记录失败'}), 500
+
+# 添加积分(内部函数)
+def add_points(member_id, points, reason):
+    try:
+        member = Member.query.get(member_id)
+        if member:
+            member.points += points
+            
+            # 更新会员等级
+            if member.points >= 1000:
+                member.level = '钻石会员'
+            elif member.points >= 500:
+                member.level = '黄金会员'
+            elif member.points >= 200:
+                member.level = '白银会员'
+            else:
+                member.level = '普通会员'
+            
+            # 添加积分记录
+            point_record = PointRecord(
+                member_id=member_id,
+                points=points,
+                reason=reason
+            )
+            db.session.add(point_record)
+            db.session.commit()
+            return True
+    except Exception as e:
+        print(f"❌ 添加积分失败: {str(e)}")
+        return False
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
