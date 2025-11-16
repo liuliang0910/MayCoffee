@@ -13,10 +13,14 @@ __pycache__/
 # Flask 实例文件夹
 instance/
 
-# 数据库文件
-*.db
+# 数据库文件（忽略生产数据库）
+messages.db
+instance/messages.db
 *.sqlite
 *.sqlite3
+
+# 但保留初始化模板（可选）
+!database_template.db
 
 # 上传的文件
 uploads/
