@@ -639,6 +639,7 @@ def member_register():
         email = data.get('email', '').strip()
         password = data.get('password', '').strip()
         phone = data.get('phone', '').strip()
+        invitation_code = data.get('invitation_code', '').strip()  # 邀请码(可选)
         
         if not username or not email or not password:
             return jsonify({'error': '用户名、邮箱和密码不能为空'}), 400
@@ -650,6 +651,17 @@ def member_register():
         # 检查邮箱是否已存在
         if Member.query.filter_by(email=email).first():
             return jsonify({'error': '邮箱已被注册'}), 400
+        
+        # 验证邀请码(如果提供)
+        invitation = None
+        if invitation_code:
+            invitation = Invitation.query.filter_by(
+                invitation_code=invitation_code,
+                status='未使用'
+            ).first()
+            
+            if not invitation:
+                return jsonify({'error': '邀请码无效或已被使用'}), 400
         
         # 创建新会员(密码简单加密:实际生产环境应使用bcrypt等)
         import hashlib
@@ -673,11 +685,36 @@ def member_register():
             reason='新用户注册奖励'
         )
         db.session.add(point_record)
+        
+        # 处理邀请码奖励
+        if invitation:
+            # 标记邀请码为已使用
+            invitation.status = '已使用'
+            invitation.invitee_id = member.id
+            invitation.used_at = datetime.now()
+            invitation.points_awarded = 20  # 邀请人获得20积分
+            
+            # 给邀请人加积分
+            add_points(invitation.inviter_id, 20, f'邀请好友 {username}')
+            
+            # 给新用户额外奖励
+            member.points += 10  # 被邀请人额外获得10积分
+            extra_point_record = PointRecord(
+                member_id=member.id,
+                points=10,
+                reason='使用邀请码注册奖励'
+            )
+            db.session.add(extra_point_record)
+        
         db.session.commit()
+        
+        message = '注册成功!赠送10积分'
+        if invitation:
+            message = '注册成功!赠送20积分(含邀请码奖励10积分)'
         
         return jsonify({
             'success': True,
-            'message': '注册成功!赠送10积分',
+            'message': message,
             'member': member.to_dict()
         }), 201
     except Exception as e:
@@ -884,6 +921,322 @@ def add_points(member_id, points, reason):
     except Exception as e:
         print(f"❌ 添加积分失败: {str(e)}")
         return False
+
+# ========== 每日签到功能 ==========
+
+@app.route('/api/member/checkin', methods=['POST'])
+def check_in():
+    """每日签到"""
+    try:
+        member_id = session.get('member_id')
+        if not member_id:
+            return jsonify({'error': '请先登录'}), 401
+        
+        today = datetime.now().date()
+        
+        # 检查今天是否已签到
+        today_checkin = CheckIn.query.filter_by(
+            member_id=member_id,
+            check_date=today
+        ).first()
+        
+        if today_checkin:
+            return jsonify({'error': '今天已经签到过了'}), 400
+        
+        # 查询昨天的签到记录
+        from datetime import timedelta
+        yesterday = today - timedelta(days=1)
+        yesterday_checkin = CheckIn.query.filter_by(
+            member_id=member_id,
+            check_date=yesterday
+        ).first()
+        
+        # 计算连续签到天数和奖励积分
+        if yesterday_checkin:
+            continuous_days = yesterday_checkin.continuous_days + 1
+        else:
+            continuous_days = 1
+        
+        # 签到奖励规则:连续签到天数越多,积分越多
+        if continuous_days >= 30:
+            points_earned = 10  # 连续30天: 10积分
+        elif continuous_days >= 7:
+            points_earned = 5   # 连续7天: 5积分
+        else:
+            points_earned = 2   # 普通签到: 2积分
+        
+        # 创建签到记录
+        checkin = CheckIn(
+            member_id=member_id,
+            check_date=today,
+            points_earned=points_earned,
+            continuous_days=continuous_days
+        )
+        
+        db.session.add(checkin)
+        db.session.commit()
+        
+        # 添加积分
+        add_points(member_id, points_earned, f'每日签到(连续{continuous_days}天)')
+        
+        return jsonify({
+            'success': True,
+            'message': f'签到成功!获得{points_earned}积分',
+            'points_earned': points_earned,
+            'continuous_days': continuous_days
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ 签到失败: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': '签到失败'}), 500
+
+@app.route('/api/member/checkin/status', methods=['GET'])
+def checkin_status():
+    """获取今日签到状态"""
+    try:
+        member_id = session.get('member_id')
+        if not member_id:
+            return jsonify({'error': '未登录'}), 401
+        
+        today = datetime.now().date()
+        today_checkin = CheckIn.query.filter_by(
+            member_id=member_id,
+            check_date=today
+        ).first()
+        
+        # 获取最近7天的签到记录
+        from datetime import timedelta
+        seven_days_ago = today - timedelta(days=6)
+        recent_checkins = CheckIn.query.filter(
+            CheckIn.member_id == member_id,
+            CheckIn.check_date >= seven_days_ago,
+            CheckIn.check_date <= today
+        ).order_by(CheckIn.check_date.asc()).all()
+        
+        return jsonify({
+            'success': True,
+            'checked_today': today_checkin is not None,
+            'continuous_days': today_checkin.continuous_days if today_checkin else 0,
+            'recent_checkins': [c.to_dict() for c in recent_checkins]
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ 获取签到状态失败: {str(e)}")
+        return jsonify({'error': '获取状态失败'}), 500
+
+# ========== 邀请好友功能 ==========
+
+@app.route('/api/member/invitation/generate', methods=['POST'])
+def generate_invitation():
+    """生成邀请码"""
+    try:
+        member_id = session.get('member_id')
+        if not member_id:
+            return jsonify({'error': '请先登录'}), 401
+        
+        # 生成唯一邀请码
+        import random
+        import string
+        while True:
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            existing = Invitation.query.filter_by(invitation_code=code).first()
+            if not existing:
+                break
+        
+        # 创建邀请记录
+        invitation = Invitation(
+            inviter_id=member_id,
+            invitation_code=code
+        )
+        
+        db.session.add(invitation)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'invitation_code': code,
+            'message': '邀请码生成成功'
+        }), 201
+        
+    except Exception as e:
+        print(f"❌ 生成邀请码失败: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': '生成失败'}), 500
+
+@app.route('/api/member/invitation/my', methods=['GET'])
+def get_my_invitations():
+    """获取我的邀请记录"""
+    try:
+        member_id = session.get('member_id')
+        if not member_id:
+            return jsonify({'error': '未登录'}), 401
+        
+        invitations = Invitation.query.filter_by(inviter_id=member_id).order_by(Invitation.created_at.desc()).all()
+        
+        # 统计信息
+        total_invitations = len(invitations)
+        used_invitations = len([inv for inv in invitations if inv.status == '已使用'])
+        total_points = sum([inv.points_awarded for inv in invitations])
+        
+        return jsonify({
+            'success': True,
+            'invitations': [inv.to_dict() for inv in invitations],
+            'stats': {
+                'total': total_invitations,
+                'used': used_invitations,
+                'points_earned': total_points
+            }
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ 获取邀请记录失败: {str(e)}")
+        return jsonify({'error': '获取记录失败'}), 500
+
+# ========== 头像上传功能 ==========
+
+@app.route('/api/member/avatar', methods=['POST'])
+def upload_avatar():
+    """上传头像"""
+    try:
+        member_id = session.get('member_id')
+        if not member_id:
+            return jsonify({'error': '请先登录'}), 401
+        
+        if 'avatar' not in request.files:
+            return jsonify({'error': '没有上传文件'}), 400
+        
+        file = request.files['avatar']
+        if file.filename == '':
+            return jsonify({'error': '没有选择文件'}), 400
+        
+        # 检查文件类型
+        if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+            return jsonify({'error': '只支持图片格式(png, jpg, jpeg, gif)'}), 400
+        
+        # 保存文件
+        filename = secure_filename(f"avatar_{member_id}_{datetime.now().timestamp()}.{file.filename.rsplit('.', 1)[1].lower()}")
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        
+        # 更新会员头像
+        member = Member.query.get(member_id)
+        # 删除旧头像
+        if member.avatar and member.avatar != 'images/default-avatar.png' and os.path.exists(member.avatar):
+            os.remove(member.avatar)
+        
+        member.avatar = f"uploads/{filename}"
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': '头像上传成功',
+            'avatar_url': f"uploads/{filename}"
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ 上传头像失败: {str(e)}")
+        return jsonify({'error': '上传失败'}), 500
+
+# ========== 密码找回功能 ==========
+
+@app.route('/api/member/password/request-reset', methods=['POST'])
+def request_password_reset():
+    """请求重置密码(发送验证码到邮箱)"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '').strip()
+        
+        if not email:
+            return jsonify({'error': '请输入邮箱'}), 400
+        
+        # 查找会员
+        member = Member.query.filter_by(email=email).first()
+        if not member:
+            # 为了安全,不透露邮箱是否存在
+            return jsonify({'success': True, 'message': '如果邮箱存在,重置链接已发送'}), 200
+        
+        # 生成重置令牌
+        import secrets
+        token = secrets.token_urlsafe(32)
+        from datetime import timedelta
+        expires_at = datetime.now() + timedelta(hours=1)  # 1小时后过期
+        
+        # 删除该用户之前未使用的令牌
+        PasswordResetToken.query.filter_by(member_id=member.id, used=False).delete()
+        
+        # 创建新令牌
+        reset_token = PasswordResetToken(
+            member_id=member.id,
+            token=token,
+            expires_at=expires_at
+        )
+        
+        db.session.add(reset_token)
+        db.session.commit()
+        
+        # 这里简化处理,实际应该发送邮件
+        # 开发环境下直接返回token(生产环境删除这部分)
+        print(f"🔑 密码重置令牌: {token}")
+        print(f"🔗 重置链接: http://localhost:5000/reset-password?token={token}")
+        
+        return jsonify({
+            'success': True,
+            'message': '重置链接已生成',
+            'token': token,  # 生产环境删除此行
+            'note': '生产环境应发送邮件,这里为了测试直接返回token'
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ 请求重置密码失败: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': '请求失败'}), 500
+
+@app.route('/api/member/password/reset', methods=['POST'])
+def reset_password():
+    """重置密码"""
+    try:
+        data = request.get_json()
+        token = data.get('token', '').strip()
+        new_password = data.get('new_password', '').strip()
+        
+        if not token or not new_password:
+            return jsonify({'error': '令牌和新密码不能为空'}), 400
+        
+        if len(new_password) < 6:
+            return jsonify({'error': '密码至少6位'}), 400
+        
+        # 查找令牌
+        reset_token = PasswordResetToken.query.filter_by(token=token, used=False).first()
+        
+        if not reset_token:
+            return jsonify({'error': '令牌无效或已使用'}), 400
+        
+        # 检查是否过期
+        if datetime.now() > reset_token.expires_at:
+            return jsonify({'error': '令牌已过期,请重新申请'}), 400
+        
+        # 重置密码
+        import hashlib
+        password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+        
+        member = Member.query.get(reset_token.member_id)
+        member.password = password_hash
+        
+        # 标记令牌已使用
+        reset_token.used = True
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': '密码重置成功,请使用新密码登录'
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ 重置密码失败: {str(e)}")
+        db.session.rollback()
+        return jsonify({'error': '重置失败'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
