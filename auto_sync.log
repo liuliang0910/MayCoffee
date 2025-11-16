@@ -14439,3 +14439,11 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-16 15:36:32] 同步完成
 [2025-11-16 15:37:32] 检测到文件变化，开始同步...
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/liuliang0910/MayCoffee.git/'
+[main 17ca743] 自动同步 - 2025-11-16 15:37:32
+ 1 file changed, 9 insertions(+)
+To https://github.com/liuliang0910/MayCoffee.git
+   c772ef8..17ca743  main -> main
+[2025-11-16 15:43:57] 同步完成
+[2025-11-16 15:44:57] 检测到文件变化，开始同步...
