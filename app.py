@@ -241,6 +241,64 @@ class Redemption(db.Model):
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
         }
 
+# 签到记录模型
+class CheckIn(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    member_id = db.Column(db.Integer, db.ForeignKey('member.id'), nullable=False)
+    check_date = db.Column(db.Date, nullable=False)  # 签到日期
+    points_earned = db.Column(db.Integer, default=1)  # 获得积分
+    continuous_days = db.Column(db.Integer, default=1)  # 连续签到天数
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'member_id': self.member_id,
+            'check_date': self.check_date.strftime('%Y-%m-%d'),
+            'points_earned': self.points_earned,
+            'continuous_days': self.continuous_days,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+# 邀请记录模型
+class Invitation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    inviter_id = db.Column(db.Integer, db.ForeignKey('member.id'), nullable=False)  # 邀请人ID
+    invitee_id = db.Column(db.Integer, db.ForeignKey('member.id'), nullable=True)  # 被邀请人ID(注册后填写)
+    invitation_code = db.Column(db.String(20), unique=True, nullable=False)  # 邀请码
+    status = db.Column(db.String(20), default='未使用')  # 状态:未使用/已使用
+    points_awarded = db.Column(db.Integer, default=0)  # 已奖励积分
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    used_at = db.Column(db.DateTime)  # 使用时间
+    
+    # 关联邀请人
+    inviter = db.relationship('Member', foreign_keys=[inviter_id], backref='sent_invitations')
+    # 关联被邀请人
+    invitee = db.relationship('Member', foreign_keys=[invitee_id], backref='received_invitation')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'inviter_id': self.inviter_id,
+            'invitee_id': self.invitee_id,
+            'invitation_code': self.invitation_code,
+            'status': self.status,
+            'points_awarded': self.points_awarded,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'used_at': self.used_at.strftime('%Y-%m-%d %H:%M:%S') if self.used_at else None
+        }
+
+# 密码重置令牌模型
+class PasswordResetToken(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    member_id = db.Column(db.Integer, db.ForeignKey('member.id'), nullable=False)
+    token = db.Column(db.String(100), unique=True, nullable=False)  # 重置令牌
+    expires_at = db.Column(db.DateTime, nullable=False)  # 过期时间
+    used = db.Column(db.Boolean, default=False)  # 是否已使用
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    
+    member = db.relationship('Member', backref='reset_tokens')
+
 # 创建数据库表
 with app.app_context():
     db.create_all()
