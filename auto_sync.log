@@ -24663,3 +24663,10 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-25 01:52:19] 同步完成
 [2025-11-25 01:53:19] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Recv failure: Connection reset by peer
+[main bab29e9] 自动同步 - 2025-11-25 01:53:19
+ 1 file changed, 8 insertions(+)
+To https://github.com/liuliang0910/MayCoffee.git
+   1f6788e..bab29e9  main -> main
+[2025-11-25 01:55:32] 同步完成
+[2025-11-25 01:56:32] 检测到文件变化，开始同步...
