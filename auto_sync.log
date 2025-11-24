@@ -24310,3 +24310,9 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-25 00:32:37] 同步完成
 [2025-11-25 00:33:38] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[main 5df8678] 自动同步 - 2025-11-25 00:33:38
+ 1 file changed, 8 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[2025-11-25 00:34:38] 同步完成
+[2025-11-25 00:35:38] 检测到文件变化，开始同步...
