@@ -23518,3 +23518,10 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-24 10:43:33] 同步完成
 [2025-11-24 10:44:33] 检测到文件变化，开始同步...
+To https://github.com/liuliang0910/MayCoffee.git
+   39bdc07..b99f2e9  main -> main
+[main b99f2e9] 自动同步 - 2025-11-24 10:44:34
+ 1 file changed, 9 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Error in the HTTP2 framing layer
+[2025-11-24 10:46:07] 同步完成
+[2025-11-24 10:47:07] 检测到文件变化，开始同步...
