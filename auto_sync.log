@@ -24203,3 +24203,9 @@ To https://github.com/liuliang0910/MayCoffee.git
 fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Recv failure: Connection reset by peer
 [2025-11-24 23:55:31] 同步完成
 [2025-11-24 23:56:31] 检测到文件变化，开始同步...
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[main e57fe83] 自动同步 - 2025-11-24 23:56:31
+ 1 file changed, 8 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Could not resolve host: github.com
+[2025-11-24 23:57:32] 同步完成
+[2025-11-24 23:58:32] 检测到文件变化，开始同步...
