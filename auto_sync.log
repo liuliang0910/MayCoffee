@@ -25691,3 +25691,10 @@ To https://github.com/liuliang0910/MayCoffee.git
 Everything up-to-date
 [2025-11-25 04:31:40] 同步完成
 [2025-11-25 04:32:40] 检测到文件变化，开始同步...
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/liuliang0910/MayCoffee.git/'
+[main edbebcb] 自动同步 - 2025-11-25 04:32:40
+ 1 file changed, 9 insertions(+)
+fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Failed to connect to github.com port 443 after 75004 ms: Couldn't connect to server
+[2025-11-29 17:15:14] 同步完成
+[2025-11-29 17:16:14] 检测到文件变化，开始同步...
