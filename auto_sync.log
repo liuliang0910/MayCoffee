@@ -30866,3 +30866,11 @@ remote: Invalid username or token. Password authentication is not supported for 
 fatal: Authentication failed for 'https://github.com/liuliang0910/MayCoffee.git/'
 [2025-12-01 08:48:00] 同步完成
 [2025-12-01 08:49:00] 检测到文件变化，开始同步...
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/liuliang0910/MayCoffee.git/'
+[main 68eced5] 自动同步 - 2025-12-01 08:49:00
+ 1 file changed, 26 insertions(+)
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/liuliang0910/MayCoffee.git/'
+[2025-12-01 08:49:40] 同步完成
+[2025-12-01 08:50:40] 检测到文件变化，开始同步...
