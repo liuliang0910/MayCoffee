@@ -31039,3 +31039,27 @@ Error: connect ECONNREFUSED /var/folders/zw/q82z_s712vb8nv261zdhbm0m0000gn/T/vsc
 fatal: unable to access 'https://github.com/liuliang0910/MayCoffee.git/': Recv failure: Operation timed out
 [2025-12-01 18:14:04] 同步完成
 [2025-12-01 18:15:05] 检测到文件变化，开始同步...
+Missing or invalid credentials.
+Error: connect ECONNREFUSED /var/folders/zw/q82z_s712vb8nv261zdhbm0m0000gn/T/vscode-git-72f9735355.sock
+    at PipeConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+  errno: -61,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '/var/folders/zw/q82z_s712vb8nv261zdhbm0m0000gn/T/vscode-git-72f9735355.sock'
+}
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/liuliang0910/MayCoffee.git/'
+[main 42070d5] 自动同步 - 2025-12-01 18:15:05
+ 1 file changed, 24 insertions(+)
+Missing or invalid credentials.
+Error: connect ECONNREFUSED /var/folders/zw/q82z_s712vb8nv261zdhbm0m0000gn/T/vscode-git-72f9735355.sock
+    at PipeConnectWrap.afterConnect [as oncomplete] (node:net:1637:16) {
+  errno: -61,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '/var/folders/zw/q82z_s712vb8nv261zdhbm0m0000gn/T/vscode-git-72f9735355.sock'
+}
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/liuliang0910/MayCoffee.git/'
+[2025-12-01 18:15:48] 同步完成
+[2025-12-01 18:16:48] 检测到文件变化，开始同步...
