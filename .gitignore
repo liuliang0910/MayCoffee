@@ -39,3 +39,6 @@ Thumbs.db
 # 环境变量
 .env
 .env.local
+
+# 日志文件
+auto_sync.log
