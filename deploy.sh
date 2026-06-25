@@ -1,43 +1,52 @@
 #!/bin/bash
+# ============================================================
+#  五月咖啡 一键部署脚本
+#  用法：在项目目录里运行   ./deploy.sh
+#  作用：① 提交并推送到 GitHub（备份/版本）
+#        ② 同步文件到阿里云服务器并重启网站
+#  说明：会自动跳过 数据库 / 上传文件 / 虚拟环境 等，
+#        绝不会覆盖客户留言、订单、会员等线上数据。
+# ============================================================
 
-# 五月咖啡网站部署脚本
-# 部署到阿里云服务器
+set -e
+cd "$(dirname "$0")"
 
-echo "开始部署五月咖啡网站..."
+SERVER="root@47.107.42.77"
+APP_DIR="/var/www/maycoffee"
+KEY="$HOME/.ssh/maycoffee_deploy"
+SSH_OPTS="-i $KEY -o StrictHostKeyChecking=no -o ConnectTimeout=20"
 
-# 服务器信息
-SERVER_IP="47.107.42.77"
-SERVER_USER="root"
-SERVER_PATH="/var/www/html"
+echo ""
+echo "==> 1/3 提交并推送到 GitHub ..."
+git add -A
+if git diff --cached --quiet; then
+    echo "    （没有新的改动需要提交）"
+else
+    git commit -m "更新 - $(date '+%Y-%m-%d %H:%M:%S')"
+fi
+if git push origin main; then
+    echo "    GitHub 推送成功"
+else
+    echo "    ⚠️  GitHub 推送失败（请检查代理 Shadowrocket 是否开启）；仍会继续部署到服务器"
+fi
 
-# 当前项目路径
-PROJECT_PATH="/Users/liuliang/Library/Mobile Documents/com~apple~CloudDocs/222 - Web | 网页/20250919，测试"
+echo ""
+echo "==> 2/3 同步文件到服务器 ..."
+rsync -az --no-perms --no-owner --no-group \
+    --exclude '.git' \
+    --exclude 'venv' \
+    --exclude '__pycache__' \
+    --exclude 'messages.db' \
+    --exclude 'instance' \
+    --exclude 'uploads' \
+    --exclude '*.log' \
+    --exclude '.DS_Store' \
+    -e "ssh $SSH_OPTS" \
+    ./ "$SERVER:$APP_DIR/"
 
-# 1. 备份服务器上的旧文件(如果有)
-echo "步骤1: 备份旧文件..."
-ssh ${SERVER_USER}@${SERVER_IP} "mkdir -p /root/backup && cp -r ${SERVER_PATH}/* /root/backup/ 2>/dev/null || true"
+echo ""
+echo "==> 3/3 重启网站服务 ..."
+ssh $SSH_OPTS "$SERVER" "systemctl restart maycoffee && sleep 2 && systemctl is-active maycoffee"
 
-# 2. 清空目标目录
-echo "步骤2: 清空目标目录..."
-ssh ${SERVER_USER}@${SERVER_IP} "rm -rf ${SERVER_PATH}/*"
-
-# 3. 上传所有文件到服务器
-echo "步骤3: 上传文件到服务器..."
-scp -r "${PROJECT_PATH}"/*.html ${SERVER_USER}@${SERVER_IP}:${SERVER_PATH}/
-scp -r "${PROJECT_PATH}"/css ${SERVER_USER}@${SERVER_IP}:${SERVER_PATH}/
-scp -r "${PROJECT_PATH}"/js ${SERVER_USER}@${SERVER_IP}:${SERVER_PATH}/
-scp -r "${PROJECT_PATH}"/images ${SERVER_USER}@${SERVER_IP}:${SERVER_PATH}/
-
-# 4. 设置文件权限
-echo "步骤4: 设置文件权限..."
-ssh ${SERVER_USER}@${SERVER_IP} "chmod -R 755 ${SERVER_PATH}"
-
-# 5. 重启Nginx
-echo "步骤5: 重启Nginx..."
-ssh ${SERVER_USER}@${SERVER_IP} "systemctl restart nginx || service nginx restart"
-
-echo "================================"
-echo "部署完成!"
-echo "访问地址: http://${SERVER_IP}"
-echo "旧文件已备份到服务器: /root/backup/"
-echo "================================"
+echo ""
+echo "✅ 部署完成！打开 https://www.maycoffee.com.cn 查看效果"
