@@ -32,11 +32,16 @@ fi
 
 echo ""
 echo "==> 2/3 同步文件到服务器 ..."
-rsync -az --no-perms --no-owner --no-group \
+rsync -az --no-perms --no-owner --no-group --timeout=120 \
     --exclude '.git' \
     --exclude 'venv' \
+    --exclude '.venv' \
+    --exclude 'venv_test' \
+    --exclude 'env' \
     --exclude '__pycache__' \
+    --exclude '*.pyc' \
     --exclude 'messages.db' \
+    --exclude '*.sqlite' \
     --exclude 'instance' \
     --exclude 'uploads' \
     --exclude '*.log' \
