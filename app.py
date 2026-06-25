@@ -299,9 +299,185 @@ class PasswordResetToken(db.Model):
     
     member = db.relationship('Member', backref='reset_tokens')
 
+# ========== 在线点单相关模型 ==========
+
+# 商品(菜单)模型
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)          # 商品名称
+    category = db.Column(db.String(50), nullable=False)        # 分类标识，如 coffee/special/tea/wine/snacks
+    category_name = db.Column(db.String(50), nullable=False)   # 分类显示名，如 经典咖啡
+    description = db.Column(db.Text)                           # 描述
+    price = db.Column(db.Float, nullable=False, default=0)     # 基础价格(元)
+    image = db.Column(db.String(500))                          # 商品图片URL
+    options = db.Column(db.Text)                               # 规格选项(JSON字符串)
+    is_active = db.Column(db.Boolean, default=True)            # 是否上架
+    sort_order = db.Column(db.Integer, default=0)              # 排序
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+    def to_dict(self):
+        try:
+            options = json.loads(self.options) if self.options else []
+        except Exception:
+            options = []
+        return {
+            'id': self.id,
+            'name': self.name,
+            'category': self.category,
+            'category_name': self.category_name,
+            'description': self.description,
+            'price': self.price,
+            'image': self.image,
+            'options': options,
+            'is_active': self.is_active,
+            'sort_order': self.sort_order
+        }
+
+# 订单模型
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_no = db.Column(db.String(32), unique=True, nullable=False)  # 订单号
+    pickup_code = db.Column(db.String(8))                             # 取餐号
+    member_id = db.Column(db.Integer, db.ForeignKey('member.id'), nullable=True)
+    customer_name = db.Column(db.String(100), nullable=False)         # 取餐人姓名
+    phone = db.Column(db.String(20))                                  # 联系电话
+    pickup_method = db.Column(db.String(20), default='到店自取')       # 取餐方式
+    note = db.Column(db.Text)                                         # 备注
+    total_amount = db.Column(db.Float, nullable=False, default=0)     # 订单总金额
+    pay_method = db.Column(db.String(20), default='到店支付')          # 支付方式
+    paid = db.Column(db.Boolean, default=False)                       # 是否已支付
+    status = db.Column(db.String(20), default='待处理')                # 待处理/已接单/制作中/已完成/已取消
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'order_no': self.order_no,
+            'pickup_code': self.pickup_code,
+            'member_id': self.member_id,
+            'customer_name': self.customer_name,
+            'phone': self.phone,
+            'pickup_method': self.pickup_method,
+            'note': self.note,
+            'total_amount': round(self.total_amount, 2),
+            'pay_method': self.pay_method,
+            'paid': self.paid,
+            'status': self.status,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'items': [item.to_dict() for item in self.items]
+        }
+
+# 订单明细模型
+class OrderItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)
+    product_name = db.Column(db.String(100), nullable=False)   # 下单时的商品名(冗余保存)
+    unit_price = db.Column(db.Float, nullable=False, default=0) # 含规格后的单价
+    quantity = db.Column(db.Integer, nullable=False, default=1)
+    options_text = db.Column(db.String(255))                   # 已选规格的文字描述
+    subtotal = db.Column(db.Float, nullable=False, default=0)  # 小计
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'product_id': self.product_id,
+            'product_name': self.product_name,
+            'unit_price': round(self.unit_price, 2),
+            'quantity': self.quantity,
+            'options_text': self.options_text,
+            'subtotal': round(self.subtotal, 2)
+        }
+
+# 饮品通用规格(咖啡/特调/茶饮)
+DRINK_OPTIONS = [
+    {"name": "杯型", "type": "single", "required": True, "choices": [
+        {"label": "中杯", "price": 0}, {"label": "大杯", "price": 3}
+    ]},
+    {"name": "温度", "type": "single", "required": True, "choices": [
+        {"label": "热", "price": 0}, {"label": "冰", "price": 0}
+    ]},
+    {"name": "甜度", "type": "single", "required": True, "choices": [
+        {"label": "标准糖", "price": 0}, {"label": "少糖", "price": 0},
+        {"label": "半糖", "price": 0}, {"label": "微糖", "price": 0}, {"label": "无糖", "price": 0}
+    ]},
+    {"name": "加料", "type": "multi", "required": False, "choices": [
+        {"label": "加浓缩", "price": 5}, {"label": "燕麦奶", "price": 4}, {"label": "香草糖浆", "price": 3}
+    ]},
+]
+
+# 茶饮规格(无加浓缩)
+TEA_OPTIONS = [
+    {"name": "杯型", "type": "single", "required": True, "choices": [
+        {"label": "中杯", "price": 0}, {"label": "大杯", "price": 3}
+    ]},
+    {"name": "温度", "type": "single", "required": True, "choices": [
+        {"label": "热", "price": 0}, {"label": "冰", "price": 0}
+    ]},
+    {"name": "甜度", "type": "single", "required": True, "choices": [
+        {"label": "标准糖", "price": 0}, {"label": "少糖", "price": 0},
+        {"label": "半糖", "price": 0}, {"label": "微糖", "price": 0}, {"label": "无糖", "price": 0}
+    ]},
+]
+
+# 初始菜单数据(价格可在后台/数据库调整)
+DEFAULT_PRODUCTS = [
+    # 经典咖啡
+    ("美式咖啡", "coffee", "经典咖啡", "浓郁的意式浓缩，带来纯粹的咖啡风味", 18,
+     "https://images.unsplash.com/photo-1494314671902-399b18174975?w=400&q=80", DRINK_OPTIONS),
+    ("拿铁", "coffee", "经典咖啡", "咖啡与牛奶的完美融合，口感丝滑香醇", 25,
+     "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80", DRINK_OPTIONS),
+    ("卡布奇诺", "coffee", "经典咖啡", "丰盈的奶泡，带来云朵般的轻柔口感", 25,
+     "https://images.unsplash.com/photo-1534778101976-62847782c213?w=400&q=80", DRINK_OPTIONS),
+    # 创意特调
+    ("海盐焦糖拿铁", "special", "创意特调", "咸甜交织的独特风味，带来味蕾的惊喜", 30,
+     "https://images.unsplash.com/photo-1517487881594-2787fef5ebf7?w=400&q=80", DRINK_OPTIONS),
+    ("抹茶拿铁", "special", "创意特调", "清新抹茶与香浓牛奶的碰撞，回味悠长", 28,
+     "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=400&q=80", DRINK_OPTIONS),
+    # 精选茶饮
+    ("茉莉花茶", "tea", "精选茶饮", "清香淡雅，舒缓身心", 20,
+     "https://images.unsplash.com/photo-1556679343-c7306c1976bc?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=400", TEA_OPTIONS),
+    ("水果茶", "tea", "精选茶饮", "新鲜水果搭配优质茶底，清爽怡人", 26,
+     "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=400", TEA_OPTIONS),
+    # 喝点小酒
+    ("精酿啤酒", "wine", "喝点小酒", "清爽怡人，微醺时光", 35,
+     "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=400", []),
+    ("水果酒", "wine", "喝点小酒", "果香浓郁，甜而不腻", 38,
+     "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=400", []),
+    # 其他零食
+    ("手工薯片", "snacks", "其他零食", "香脆可口，休闲必备", 15,
+     "https://images.unsplash.com/photo-1599490659213-e2b9527bd087?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=400", []),
+    ("混合坚果", "snacks", "其他零食", "营养健康，能量补充", 22,
+     "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=400", []),
+]
+
+# 分类顺序
+CATEGORY_ORDER = ['coffee', 'special', 'tea', 'wine', 'snacks']
+
+def seed_products():
+    """首次启动时填充默认菜单(已有商品则跳过)"""
+    try:
+        if Product.query.count() > 0:
+            return
+        for idx, (name, cat, cat_name, desc, price, image, opts) in enumerate(DEFAULT_PRODUCTS):
+            product = Product(
+                name=name, category=cat, category_name=cat_name,
+                description=desc, price=price, image=image,
+                options=json.dumps(opts, ensure_ascii=False),
+                is_active=True, sort_order=idx
+            )
+            db.session.add(product)
+        db.session.commit()
+        print("✅ 已初始化默认菜单商品")
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ 初始化菜单失败: {str(e)}")
+
 # 创建数据库表
 with app.app_context():
     db.create_all()
+    seed_products()
 
 # 允许的文件类型
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'avi', 'mov', 'webm'}
@@ -1237,6 +1413,223 @@ def reset_password():
         print(f"❌ 重置密码失败: {str(e)}")
         db.session.rollback()
         return jsonify({'error': '重置失败'}), 500
+
+# ========== 在线点单 API ==========
+
+def send_order_notification(order):
+    """新订单微信通知(复用 Server酱)"""
+    try:
+        if SERVERCHAN_CONFIG['sckey'] == 'YOUR_SCKEY':
+            return False
+        items_desc = '\n'.join([
+            f"- {it.product_name} x{it.quantity}" + (f"（{it.options_text}）" if it.options_text else "")
+            for it in order.items
+        ])
+        title = f"🛒 新订单 #{order.pickup_code} - ¥{round(order.total_amount, 2)}"
+        desp = (f"**取餐号**: {order.pickup_code}\n\n"
+                f"**取餐人**: {order.customer_name}\n\n"
+                f"**电话**: {order.phone or '未填写'}\n\n"
+                f"**取餐方式**: {order.pickup_method}\n\n"
+                f"**商品**:\n{items_desc}\n\n"
+                f"**合计**: ¥{round(order.total_amount, 2)}（{order.pay_method}）\n\n"
+                f"**备注**: {order.note or '无'}")
+        url = f"https://sct.ftqq.com/{SERVERCHAN_CONFIG['sckey']}.send"
+        requests.post(url, data={'text': title, 'desp': desp}, timeout=10)
+        return True
+    except Exception as e:
+        print(f"❌ 订单通知发送异常: {str(e)}")
+        return False
+
+# 在线点单页面
+@app.route('/order')
+def order_page():
+    return app.send_static_file('order.html')
+
+# 获取在售商品列表
+@app.route('/api/products', methods=['GET'])
+def get_products():
+    products = Product.query.filter_by(is_active=True).order_by(
+        Product.sort_order.asc(), Product.id.asc()
+    ).all()
+    # 按分类组织，方便前端渲染
+    categories = []
+    cat_map = {}
+    for p in products:
+        if p.category not in cat_map:
+            cat_map[p.category] = {
+                'category': p.category,
+                'category_name': p.category_name,
+                'products': []
+            }
+            categories.append(cat_map[p.category])
+        cat_map[p.category]['products'].append(p.to_dict())
+    # 按预设顺序排序分类
+    categories.sort(key=lambda c: CATEGORY_ORDER.index(c['category'])
+                    if c['category'] in CATEGORY_ORDER else 999)
+    return jsonify({'success': True, 'categories': categories})
+
+def _generate_order_no():
+    import random
+    return datetime.now().strftime('%Y%m%d%H%M%S') + str(random.randint(100, 999))
+
+# 创建订单
+@app.route('/api/orders', methods=['POST'])
+def create_order():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': '请求数据为空'}), 400
+
+        customer_name = (data.get('customer_name') or '').strip()
+        phone = (data.get('phone') or '').strip()
+        pickup_method = (data.get('pickup_method') or '到店自取').strip()
+        note = (data.get('note') or '').strip()
+        pay_method = (data.get('pay_method') or '到店支付').strip()
+        items = data.get('items') or []
+
+        if not customer_name:
+            return jsonify({'error': '请填写取餐人姓名'}), 400
+        if not items:
+            return jsonify({'error': '购物车为空'}), 400
+
+        # 服务端重新计算价格，避免前端篡改
+        order = Order(
+            order_no=_generate_order_no(),
+            customer_name=customer_name,
+            phone=phone,
+            pickup_method=pickup_method,
+            note=note,
+            pay_method=pay_method,
+            total_amount=0,
+            member_id=session.get('member_id')
+        )
+        db.session.add(order)
+
+        total = 0.0
+        for item in items:
+            product = Product.query.get(item.get('product_id'))
+            if not product or not product.is_active:
+                return jsonify({'error': '商品不存在或已下架'}), 400
+            try:
+                quantity = int(item.get('quantity', 1))
+            except (TypeError, ValueError):
+                quantity = 1
+            if quantity < 1:
+                quantity = 1
+
+            unit_price = float(product.price)
+            option_labels = []
+            # 校验并累加规格价格
+            try:
+                product_options = json.loads(product.options) if product.options else []
+            except Exception:
+                product_options = []
+            selected = item.get('options') or []  # [{group, label}]
+            valid_choices = {}
+            for grp in product_options:
+                for ch in grp.get('choices', []):
+                    valid_choices[(grp['name'], ch['label'])] = ch.get('price', 0)
+            for sel in selected:
+                key = (sel.get('group'), sel.get('label'))
+                if key in valid_choices:
+                    unit_price += float(valid_choices[key])
+                    option_labels.append(sel.get('label'))
+
+            subtotal = unit_price * quantity
+            total += subtotal
+
+            order_item = OrderItem(
+                order=order,
+                product_id=product.id,
+                product_name=product.name,
+                unit_price=unit_price,
+                quantity=quantity,
+                options_text='/'.join([l for l in option_labels if l]),
+                subtotal=subtotal
+            )
+            db.session.add(order_item)
+
+        order.total_amount = total
+        db.session.flush()  # 取得 order.id
+        order.pickup_code = f"{order.id % 1000:03d}"
+        db.session.commit()
+
+        # 微信通知店主
+        send_order_notification(order)
+
+        # 会员下单送积分(每消费1元得1积分)
+        member_id = session.get('member_id')
+        points_earned = 0
+        if member_id:
+            points_earned = int(total)
+            if points_earned > 0:
+                add_points(member_id, points_earned, f'在线点单 {order.order_no}')
+
+        return jsonify({
+            'success': True,
+            'message': '下单成功',
+            'order': order.to_dict(),
+            'points_earned': points_earned
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ 创建订单失败: {str(e)}")
+        return jsonify({'error': '下单失败，请稍后重试'}), 500
+
+# 查询订单(凭订单号)
+@app.route('/api/orders/<order_no>', methods=['GET'])
+def get_order(order_no):
+    order = Order.query.filter_by(order_no=order_no).first()
+    if not order:
+        return jsonify({'error': '订单不存在'}), 404
+    return jsonify({'success': True, 'order': order.to_dict()}), 200
+
+# 获取当前会员的订单
+@app.route('/api/member/orders', methods=['GET'])
+def get_member_orders():
+    member_id = session.get('member_id')
+    if not member_id:
+        return jsonify({'error': '未登录'}), 401
+    orders = Order.query.filter_by(member_id=member_id).order_by(Order.created_at.desc()).all()
+    return jsonify({'success': True, 'orders': [o.to_dict() for o in orders]}), 200
+
+# ===== 订单管理后台 =====
+
+@app.route('/orders-admin')
+def orders_admin_page():
+    if 'admin_logged_in' not in session:
+        return redirect(url_for('admin_login'))
+    return app.send_static_file('orders-admin.html')
+
+@app.route('/api/admin/orders', methods=['GET'])
+def admin_get_orders():
+    if 'admin_logged_in' not in session:
+        return jsonify({'error': '未授权'}), 401
+    status = request.args.get('status')
+    query = Order.query
+    if status:
+        query = query.filter_by(status=status)
+    orders = query.order_by(Order.created_at.desc()).limit(200).all()
+    return jsonify({'success': True, 'orders': [o.to_dict() for o in orders]}), 200
+
+@app.route('/api/admin/orders/<int:order_id>/status', methods=['POST'])
+def admin_update_order_status(order_id):
+    if 'admin_logged_in' not in session:
+        return jsonify({'error': '未授权'}), 401
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({'error': '订单不存在'}), 404
+    data = request.get_json() or {}
+    new_status = (data.get('status') or '').strip()
+    allowed = ['待处理', '已接单', '制作中', '已完成', '已取消']
+    if new_status not in allowed:
+        return jsonify({'error': '无效的状态'}), 400
+    order.status = new_status
+    if 'paid' in data:
+        order.paid = bool(data.get('paid'))
+    db.session.commit()
+    return jsonify({'success': True, 'order': order.to_dict()}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

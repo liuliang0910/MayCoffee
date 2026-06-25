@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单管理 - 五月咖啡</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .oa-wrap { max-width: 1100px; margin: 20px auto; padding: 0 16px; }
+        .oa-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+        .oa-head h1 { color: #a37e58; margin: 0; font-size: 1.6rem; }
+        .oa-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+        .oa-filter {
+            border: 1.5px solid #ddd; background: #fff; border-radius: 18px;
+            padding: 6px 16px; cursor: pointer; font-size: 0.88rem; color: #555;
+        }
+        .oa-filter.active { border-color: #a37e58; color: #a37e58; background: #f6efe7; font-weight: bold; }
+        .oa-refresh { font-size: 0.82rem; color: #999; }
+        .order-card {
+            background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 16px 18px; margin-bottom: 14px; border-left: 5px solid #a37e58;
+        }
+        .order-card.s-待处理 { border-left-color: #e67e22; }
+        .order-card.s-已完成 { border-left-color: #27ae60; }
+        .order-card.s-已取消 { border-left-color: #bbb; opacity: 0.75; }
+        .oc-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+        .oc-code { font-size: 1.4rem; font-weight: bold; color: #c0392b; }
+        .oc-code small { font-size: 0.7rem; color: #999; font-weight: normal; }
+        .oc-status { font-size: 0.82rem; padding: 4px 12px; border-radius: 12px; background: #f0f0f0; color: #666; }
+        .oc-meta { font-size: 0.85rem; color: #666; margin: 8px 0; line-height: 1.7; }
+        .oc-meta b { color: #333; }
+        .oc-items { background: #faf7f3; border-radius: 8px; padding: 10px 14px; margin: 8px 0; }
+        .oc-item { display: flex; justify-content: space-between; font-size: 0.88rem; padding: 3px 0; color: #555; }
+        .oc-total { text-align: right; font-weight: bold; color: #c0392b; font-size: 1.05rem; margin-top: 6px; }
+        .oc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .oc-btn {
+            border: none; border-radius: 16px; padding: 7px 16px; cursor: pointer;
+            font-size: 0.85rem; color: #fff; background: #a37e58;
+        }
+        .oc-btn.gray { background: #999; }
+        .oc-btn.green { background: #27ae60; }
+        .oc-btn.red { background: #c0392b; }
+        .oa-empty { text-align: center; color: #999; padding: 50px 0; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="container">
+            <div class="logo"><a href="index.html"><img src="images/1_主logo/五月咖啡 主LOGO 透明背景.svg" alt="五月咖啡"></a></div>
+            <nav class="main-nav"><ul>
+                <li><a href="index.html">返回首页</a></li>
+                <li><a href="order.html">点单页</a></li>
+                <li><a href="/admin/logout">退出</a></li>
+            </ul></nav>
+        </div>
+    </header>
+
+    <div class="oa-wrap">
+        <div class="oa-head">
+            <h1>🛒 订单管理</h1>
+            <span class="oa-refresh">每 15 秒自动刷新 · <span id="lastUpdate">--</span></span>
+        </div>
+        <div class="oa-filters" id="filters">
+            <button class="oa-filter active" data-status="">全部</button>
+            <button class="oa-filter" data-status="待处理">待处理</button>
+            <button class="oa-filter" data-status="已接单">已接单</button>
+            <button class="oa-filter" data-status="制作中">制作中</button>
+            <button class="oa-filter" data-status="已完成">已完成</button>
+            <button class="oa-filter" data-status="已取消">已取消</button>
+        </div>
+        <div id="ordersList"><div class="oa-empty">加载中...</div></div>
+    </div>
+
+    <script>
+        let currentStatus = '';
+
+        async function loadOrders() {
+            try {
+                const url = '/api/admin/orders' + (currentStatus ? ('?status=' + encodeURIComponent(currentStatus)) : '');
+                const res = await fetch(url);
+                if (res.status === 401) { window.location.href = '/admin/login'; return; }
+                const data = await res.json();
+                renderOrders(data.orders || []);
+                document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+            } catch (e) {
+                document.getElementById('ordersList').innerHTML = '<div class="oa-empty">加载失败</div>';
+            }
+        }
+
+        function esc(t) {
+            if (t == null) return '';
+            return String(t).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+        }
+
+        function renderOrders(orders) {
+            const box = document.getElementById('ordersList');
+            if (!orders.length) { box.innerHTML = '<div class="oa-empty">暂无订单</div>'; return; }
+            box.innerHTML = orders.map(o => `
+                <div class="order-card s-${esc(o.status)}">
+                    <div class="oc-top">
+                        <div class="oc-code">#${esc(o.pickup_code)} <small>${esc(o.order_no)}</small></div>
+                        <span class="oc-status">${esc(o.status)}${o.paid ? ' · 已付' : ''}</span>
+                    </div>
+                    <div class="oc-meta">
+                        <b>${esc(o.customer_name)}</b> · ${esc(o.phone || '无电话')} · ${esc(o.pickup_method)}<br>
+                        下单时间：${esc(o.created_at)}${o.note ? '<br>备注：' + esc(o.note) : ''}
+                    </div>
+                    <div class="oc-items">
+                        ${o.items.map(it => `
+                            <div class="oc-item">
+                                <span>${esc(it.product_name)}${it.options_text ? ' · ' + esc(it.options_text) : ''} x${it.quantity}</span>
+                                <span>¥${it.subtotal}</span>
+                            </div>`).join('')}
+                        <div class="oc-total">合计 ¥${o.total_amount}</div>
+                    </div>
+                    <div class="oc-actions">
+                        ${o.status === '待处理' ? `<button class="oc-btn" onclick="setStatus(${o.id}, '已接单')">接单</button>` : ''}
+                        ${o.status === '已接单' ? `<button class="oc-btn" onclick="setStatus(${o.id}, '制作中')">开始制作</button>` : ''}
+                        ${(o.status === '制作中' || o.status === '已接单') ? `<button class="oc-btn green" onclick="setStatus(${o.id}, '已完成')">完成</button>` : ''}
+                        ${!o.paid && o.status !== '已取消' ? `<button class="oc-btn" onclick="markPaid(${o.id}, '${esc(o.status)}')">标记已付</button>` : ''}
+                        ${o.status !== '已完成' && o.status !== '已取消' ? `<button class="oc-btn red" onclick="setStatus(${o.id}, '已取消')">取消</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function setStatus(id, status) {
+            await fetch(`/api/admin/orders/${id}/status`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            loadOrders();
+        }
+        async function markPaid(id, status) {
+            await fetch(`/api/admin/orders/${id}/status`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: status, paid: true })
+            });
+            loadOrders();
+        }
+
+        document.querySelectorAll('.oa-filter').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.oa-filter').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentStatus = btn.dataset.status;
+                loadOrders();
+            });
+        });
+
+        loadOrders();
+        setInterval(loadOrders, 15000);
+    </script>
+</body>
+</html>
