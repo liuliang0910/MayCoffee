@@ -424,9 +424,9 @@ TEA_OPTIONS = [
 # 初始菜单数据(价格可在后台/数据库调整)
 DEFAULT_PRODUCTS = [
     # 经典咖啡
-    ("美式咖啡", "coffee", "经典咖啡", "浓郁的意式浓缩，带来纯粹的咖啡风味", 18,
+    ("美式咖啡", "coffee", "经典咖啡", "浓郁的意式浓缩，带来纯粹的咖啡风味", 30,
      "https://images.unsplash.com/photo-1494314671902-399b18174975?w=400&q=80", DRINK_OPTIONS),
-    ("拿铁", "coffee", "经典咖啡", "咖啡与牛奶的完美融合，口感丝滑香醇", 25,
+    ("拿铁", "coffee", "经典咖啡", "咖啡与牛奶的完美融合，口感丝滑香醇", 60,
      "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80", DRINK_OPTIONS),
     ("卡布奇诺", "coffee", "经典咖啡", "丰盈的奶泡，带来云朵般的轻柔口感", 25,
      "https://images.unsplash.com/photo-1534778101976-62847782c213?w=400&q=80", DRINK_OPTIONS),
